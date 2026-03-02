@@ -4,3 +4,4 @@ target/
 .mooncakes/
 .moonagent/
 .local/
+release.nu

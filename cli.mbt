@@ -1,5 +1,5 @@
 /// Also see: moon.mod.json - `version`
-const VERSION = "0.1.2"
+const VERSION = "0.1.3"
 
 ///|
 fn usage_text() -> String {
