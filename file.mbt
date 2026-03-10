@@ -14,6 +14,7 @@ fn file_content_moon_mod_json(
     $|  "repository": "https://\{repository_hosting}/\{username}/\{module_name}",
     $|  "license": "\{license}",
     #|  "keywords": [],
+    #|  "readme": "README.md",
     #|  "description": "",
     $|  "preferred-target": "\{preferred_target}"
     #|}
