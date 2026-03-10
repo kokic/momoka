@@ -1,6 +1,6 @@
 import {
   "moonbitlang/async",
-  "kokic/moon-new-mini" @mini,
+  "kokic/momoka" @mini,
 }
 
 options(
