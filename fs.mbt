@@ -25,6 +25,6 @@ fn ensure_dir_recursive(path : String) -> Result[Unit, String] {
 ///|
 fn write_string_file(path : String, content : String) -> Result[Unit, String] {
   Result::map_err(try? @fs.write_string_to_file(path, content), err => {
-    "failed to write file \{path}: \{err}"
+    "failed to write file \{path}: \{@debug.to_repr(err)}"
   })
 }

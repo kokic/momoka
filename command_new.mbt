@@ -46,7 +46,7 @@ fn ensure_existing_dir(path : String) -> Result[Unit, String] {
   match is_dir_result {
     Ok(true) => Ok(())
     Ok(false) => Err("path exists but is not a directory: \{path}")
-    Err(err) => Err("failed to inspect directory \{path}: \{err}")
+    Err(err) => Err("failed to inspect directory \{path}: \{@debug.to_repr(err)}")
   }
 }
 

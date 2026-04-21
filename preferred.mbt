@@ -109,11 +109,11 @@ fn ensure_dir(path : String) -> Result[Unit, String] {
     match is_dir_result {
       Ok(true) => Ok(())
       Ok(false) => Err("path exists but is not a directory: \{path}")
-      Err(err) => Err("failed to inspect directory \{path}: \{err}")
+      Err(err) => Err("failed to inspect directory \{path}: \{@debug.to_repr(err)}")
     }
   } else {
     Result::map_err(try? @fs.create_dir(path), err => {
-      "failed to create directory \{path}: \{err}"
+      "failed to create directory \{path}: \{@debug.to_repr(err)}"
     })
   }
 }
