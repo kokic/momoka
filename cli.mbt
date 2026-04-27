@@ -7,7 +7,7 @@ fn usage_text() -> String {
   (
     $|Momoka \{VERSION} - Create a minimal MoonBit module
     $|\{cli_command().render_help()}
-    $|\{BANNER_TEXT}"
+    $|\{BANNER_TEXT}
   )
 }
 
