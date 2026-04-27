@@ -1,31 +1,13 @@
 ///|
 /// Also see: moon.mod.json - `version`
-pub const VERSION = "0.2.1"
+pub const VERSION = "0.2.2"
 
 ///|
 fn usage_text() -> String {
   (
     $|Momoka \{VERSION} - Create a minimal MoonBit module
-    #|
-    #|Usage:
-    #|  momoka [OPTIONS] <PATH>
-    #|  momoka --init [OPTIONS] [PATH]
-    #|  momoka prefs [--show]
-    #|
-    #|Commands:
-    #|  prefs  Configure default license / host / target, or print with --show [aliases: config]
-    #|
-    #|Arguments:
-    #|  <PATH>  Project directory path
-    #|
-    #|Options:
-    #|  -l, --license <LICENSE>  License for moon.mod.json [default: prefs or AGPL-3.0]
-    #|      --host <HOST>        Repository hosting domain [default: prefs or github.com]
-    #|  -t, --target <TARGET>    Preferred target [default: prefs or native]
-    #|  -i, --init               Initialize in an existing directory instead of creating it
-    #|      --show               Print current preferences for prefs / config command
-    #|  -h, --help               Print help
-    $|\{BANNER_TEXT}
+    $|\{cli_command().render_help()}
+    $|\{BANNER_TEXT}"
   )
 }
 
@@ -95,18 +77,18 @@ fn cli_command() -> @argparse.Command {
         "license",
         short='l',
         long="license",
-        about="License for moon.mod.json.",
+        about="License for moon.mod.json [default: prefs or AGPL-3.0].",
       ),
       @argparse.OptionArg::new(
         "host",
         long="host",
-        about="Repository hosting domain.",
+        about="Repository hosting domain [default: prefs or github.com].",
       ),
       @argparse.OptionArg::new(
         "target",
         short='t',
         long="target",
-        about="Preferred target.",
+        about="Preferred target [default: prefs or native].",
       ),
     ],
     flags=[

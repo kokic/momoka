@@ -88,7 +88,10 @@ test "parse_preferred_config key-values" {
 
 ///|
 test "parse_preferred_config username compatibility" {
-  @test.assert_eq(parse_preferred_config("username kokic").username, Some("kokic"))
+  @test.assert_eq(
+    parse_preferred_config("username kokic").username,
+    Some("kokic"),
+  )
   @test.assert_eq(
     parse_preferred_config("username   mooner  ").username,
     Some("mooner"),
