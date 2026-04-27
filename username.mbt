@@ -6,7 +6,7 @@ async fn prompt_username(remaining_retry : Int) -> String? {
     println("(first) please input MoonBit username:")
     match read_line_from_stdin() {
       Some(line) => {
-        let username = line.trim().to_string()
+        let username = line.trim().to_owned()
         if username.is_empty() {
           println("username cannot be empty")
           prompt_username(remaining_retry - 1)

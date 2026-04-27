@@ -32,7 +32,7 @@ fn parse_preferred_field(line : String, key : String) -> String? {
   if !line.has_prefix(prefix) {
     return None
   }
-  let value = line.view(start_offset=prefix.length()).trim().to_string()
+  let value = line.view(start_offset=prefix.length()).trim().to_owned()
   if value.is_empty() {
     None
   } else {
@@ -47,7 +47,7 @@ fn parse_preferred_config(content : String) -> PreferredConfig {
   let mut repository_hosting : String? = None
   let mut preferred_target : String? = None
   for raw_line in content.split("\n") {
-    let line = raw_line.trim().to_string()
+    let line = raw_line.trim().to_owned()
     if line.is_empty() {
       continue
     }
@@ -83,19 +83,19 @@ fn preferred_config_to_content(preferred : PreferredConfig) -> String {
 }
 
 ///|
-fn load_preferred_config(preferred_file : String) -> PreferredConfig {
-  if !@fs.path_exists(preferred_file) {
+async fn load_preferred_config(preferred_file : String) -> PreferredConfig {
+  if !@fs.exists(preferred_file) {
     empty_preferred_config()
   } else {
-    (try? @fs.read_file_to_string(preferred_file))
+    (try? @fs.read_file(preferred_file))
     .to_option()
-    .map(content => parse_preferred_config(content))
+    .map(content => parse_preferred_config(content.text()))
     .unwrap_or(empty_preferred_config())
   }
 }
 
 ///|
-fn save_preferred_config(
+async fn save_preferred_config(
   preferred_file : String,
   preferred : PreferredConfig,
 ) -> Result[Unit, String] {
@@ -103,16 +103,16 @@ fn save_preferred_config(
 }
 
 ///|
-fn ensure_dir(path : String) -> Result[Unit, String] {
-  if @fs.path_exists(path) {
-    let is_dir_result = try? @fs.is_dir(path)
-    match is_dir_result {
-      Ok(true) => Ok(())
-      Ok(false) => Err("path exists but is not a directory: \{path}")
-      Err(err) => Err("failed to inspect directory \{path}: \{@debug.to_repr(err)}")
+async fn ensure_dir(path : String) -> Result[Unit, String] {
+  if @fs.exists(path) {
+    try @fs.kind(path) catch {
+      err => Err("failed to inspect directory \{path}: \{@debug.to_repr(err)}")
+    } noraise {
+      Directory => Ok(())
+      _ => Err("path exists but is not a directory: \{path}")
     }
   } else {
-    Result::map_err(try? @fs.create_dir(path), err => {
+    Result::map_err(try? @fs.mkdir(path), err => {
       "failed to create directory \{path}: \{@debug.to_repr(err)}"
     })
   }
@@ -120,7 +120,7 @@ fn ensure_dir(path : String) -> Result[Unit, String] {
 
 ///|
 fn module_name_from_project_dir(project_dir : String) -> String {
-  let module_name = @path.Path::basename(project_dir).to_string()
+  let module_name = @path.Path::basename(project_dir).to_owned()
   if module_name.is_empty() {
     "moon-new-mini"
   } else {

@@ -9,7 +9,7 @@ async fn prompt_preferred_field(
   guard read_line_from_stdin() is Some(line) else {
     return Err("failed to read input from stdin")
   }
-  let value = line.trim().to_string()
+  let value = line.trim().to_owned()
   if value.is_empty() {
     Ok(current)
   } else {
@@ -81,7 +81,7 @@ async fn configure_preferred_defaults() -> Result[String, String] {
 }
 
 ///|
-fn show_preferred_defaults() -> Result[String, String] {
+async fn show_preferred_defaults() -> Result[String, String] {
   guard home_dir() is Some(home) else {
     return Err("cannot locate home directory from HOME/USERPROFILE")
   }

@@ -1,11 +1,13 @@
 import {
   "moonbitlang/core/env",
-  "moonbitlang/core/debug", 
+  "moonbitlang/core/test",
+  "moonbitlang/core/argparse",
+  "moonbitlang/core/debug",
   "moonbitlang/async/stdio",
-  "moonbitlang/x/fs",
   "moonbitlang/x/path",
   "moonbitlang/x/sys",
   "moonbitlang/async",
+  "moonbitlang/async/fs",
 }
 
 options(

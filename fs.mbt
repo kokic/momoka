@@ -4,11 +4,11 @@ async fn read_line_from_stdin() -> String? {
 }
 
 ///|
-fn ensure_dir_recursive(path : String) -> Result[Unit, String] {
+async fn ensure_dir_recursive(path : String) -> Result[Unit, String] {
   if path.is_empty() {
     return Ok(())
   }
-  if @fs.path_exists(path) {
+  if @fs.exists(path) {
     ensure_dir(path)
   } else {
     let parent = @path.Path::dirname(path).to_string()
@@ -23,8 +23,11 @@ fn ensure_dir_recursive(path : String) -> Result[Unit, String] {
 }
 
 ///|
-fn write_string_file(path : String, content : String) -> Result[Unit, String] {
-  Result::map_err(try? @fs.write_string_to_file(path, content), err => {
+async fn write_string_file(
+  path : String,
+  content : String,
+) -> Result[Unit, String] {
+  Result::map_err(try? @fs.write_file(path, content), err => {
     "failed to write file \{path}: \{@debug.to_repr(err)}"
   })
 }
