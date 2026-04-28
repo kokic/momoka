@@ -37,6 +37,7 @@ priv enum PreferencesRequest {
 
 ///|
 priv enum CliRequest {
+  Help
   Project(CliConfig)
   Preferences(PreferencesRequest)
 }
@@ -218,12 +219,8 @@ fn has_help_flag(args : ArrayView[String]) -> Bool {
 
 ///|
 fn parse_cli_args(args : ArrayView[String]) -> Result[CliRequest, String] {
-  if args.length() == 0 {
-    return Err(usage_text())
-  }
-  if has_help_flag(args) {
-    return Err(usage_text())
-  }
+  guard args.length() != 0 else { return Ok(Help) }
+  guard !has_help_flag(args) else { return Ok(Help) }
   try @argparse.Command::parse(cli_command(), argv=args) catch {
     err => Err("\{err}")
   } noraise {

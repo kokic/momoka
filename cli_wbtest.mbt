@@ -57,6 +57,13 @@ test "parse_cli_args invalid option" {
 }
 
 ///|
+test "parse_cli_args help is success" {
+  guard parse_cli_args(["--help"]) is Ok(Help) else {
+    fail("expected help request")
+  }
+}
+
+///|
 test "parse_cli_args preferences configure" {
   guard parse_cli_args(["cfg"]) is Ok(Preferences(Configure)) else {
     fail("expected preferences configure request")

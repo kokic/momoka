@@ -27,6 +27,7 @@ async fn run(args : ArrayView[String]) -> Result[String, String] {
 ///|
 async fn handle_cli_request(request : CliRequest) -> Result[String, String] {
   match request {
+    Help => Ok(usage_text())
     Project(config) => run_project_request(config)
     Preferences(Configure) => configure_preferred_defaults()
     Preferences(Show) => show_preferred_defaults()
