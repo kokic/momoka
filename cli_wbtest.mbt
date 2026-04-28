@@ -58,14 +58,14 @@ test "parse_cli_args invalid option" {
 
 ///|
 test "parse_cli_args preferences configure" {
-  guard parse_cli_args(["prefs"]) is Ok(Preferences(Configure)) else {
+  guard parse_cli_args(["cfg"]) is Ok(Preferences(Configure)) else {
     fail("expected preferences configure request")
   }
 }
 
 ///|
-test "parse_cli_args preferences show alias" {
-  guard parse_cli_args(["config", "--show"]) is Ok(Preferences(Show)) else {
+test "parse_cli_args preferences show" {
+  guard parse_cli_args(["cfg", "--show"]) is Ok(Preferences(Show)) else {
     fail("expected preferences show request")
   }
 }

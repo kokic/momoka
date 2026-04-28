@@ -18,7 +18,7 @@ Usage: momoka [options] [path] [command]
 Create a minimal MoonBit module
 
 Commands:
-  prefs  Configure default license / host / target, or print them.
+  cfg  Configure default license / host / target, or print them.
 
 Arguments:
   path  Project directory path.

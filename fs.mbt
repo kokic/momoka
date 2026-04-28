@@ -31,3 +31,18 @@ async fn write_string_file(
     "failed to write file \{path}: \{@debug.to_repr(err)}"
   })
 }
+
+///|
+fn home_dir() -> String? {
+  let home = @sys.get_env_var("HOME")
+  if home is Some(path) && !path.is_empty() {
+    Some(path)
+  } else {
+    let userprofile = @sys.get_env_var("USERPROFILE")
+    if userprofile is Some(path) && !path.is_empty() {
+      Some(path)
+    } else {
+      None
+    }
+  }
+}

@@ -49,7 +49,7 @@ jobs:
           fi
 
       - name: Build native release binary
-        run: moon build --release -j 1 momoka
+        run: moon build --release
 
       - name: Package binary (Windows)
         if: runner.os == 'Windows'
@@ -57,7 +57,7 @@ jobs:
         shell: pwsh
         run: |
           $tag = "${{ github.event.release.tag_name }}"
-          $src = "_build/native/release/build/momoka/momoka.exe"
+          $src = "_build/native/release/build/momoka.exe"
           if (!(Test-Path $src)) {
             throw "Build output not found: $src"
           }
@@ -76,7 +76,7 @@ jobs:
         shell: bash
         run: |
           tag="${{ github.event.release.tag_name }}"
-          src="_build/native/release/build/momoka/momoka.exe"
+          src="_build/native/release/build/momoka.exe"
           if [ ! -f "$src" ]; then
             echo "Build output not found: $src"
             exit 1

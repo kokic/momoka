@@ -9,7 +9,7 @@ async fn prompt_preferred_field(
   guard read_line_from_stdin() is Some(line) else {
     return Err("failed to read input from stdin")
   }
-  let value = line.trim().to_string()
+  let value = line.trim().to_owned()
   if value.is_empty() {
     Ok(current)
   } else {

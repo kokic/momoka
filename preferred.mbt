@@ -32,7 +32,7 @@ fn parse_preferred_field(line : String, key : String) -> String? {
   if !line.has_prefix(prefix) {
     return None
   }
-  let value = line.view(start_offset=prefix.length()).trim().to_string()
+  let value = line.view(start_offset=prefix.length()).trim().to_owned()
   if value.is_empty() {
     None
   } else {
@@ -47,7 +47,7 @@ fn parse_preferred_config(content : String) -> PreferredConfig {
   let mut repository_hosting : String? = None
   let mut preferred_target : String? = None
   for raw_line in content.split("\n") {
-    let line = raw_line.trim().to_string()
+    let line = raw_line.trim().to_owned()
     if line.is_empty() {
       continue
     }
@@ -120,7 +120,7 @@ async fn ensure_dir(path : String) -> Result[Unit, String] {
 
 ///|
 fn module_name_from_project_dir(project_dir : String) -> String {
-  let module_name = @path.Path::basename(project_dir).to_string()
+  let module_name = @path.Path::basename(project_dir).to_owned()
   if module_name.is_empty() {
     "moon-new-mini"
   } else {
