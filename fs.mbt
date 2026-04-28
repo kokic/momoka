@@ -27,9 +27,10 @@ async fn write_string_file(
   path : String,
   content : String,
 ) -> Result[Unit, String] {
-  Result::map_err(try? @fs.write_file(path, content), err => {
-    "failed to write file \{path}: \{@debug.to_repr(err)}"
-  })
+  Result::map_err(
+    try? @fs.write_file(path, content, create_mode=CreateOrTruncate),
+    err => { "failed to write file \{path}: \{@debug.to_repr(err)}" },
+  )
 }
 
 ///|
