@@ -6,7 +6,9 @@ Create a minimal **Mo**onBit **mo**dule **か**?
 
 ```sh
 momoka your-great-project
-momoka --init your-existing-project
+
+# or, cd <your-existing-project>
+momoka --init ./ 
 ```
 
 ## Help
