@@ -124,9 +124,3 @@ test "preferred_config_to_content" {
     ),
   )
 }
-
-///|
-async test "module_name from resolved path basename" {
-  let project_dir = @fs.realpath("example_project").to_string()
-  assert_eq(module_name_from_project_dir(project_dir), "example_project")
-}

@@ -1,6 +1,6 @@
 ///|
 /// Also see: moon.mod.json - `version`
-pub const VERSION = "0.2.3"
+pub const VERSION = "0.2.4"
 
 ///|
 fn usage_text() -> String {

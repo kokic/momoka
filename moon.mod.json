@@ -1,14 +1,14 @@
 {
   "name": "kokic/momoka",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "deps": {
     "moonbitlang/x": "0.4.43",
     "moonbitlang/async": "0.18.1"
   },
   "readme": "README.md",
-  "repository": "https://github.com/kokic/moon-new-mini",
+  "repository": "https://github.com/kokic/momoka",
   "license": "AGPL-3.0",
-  "keywords": [],
-  "description": "",
+  "keywords": ["module"],
+  "description": "Create a minimal MoonBit module",
   "preferred-target": "native"
 }
