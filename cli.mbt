@@ -95,32 +95,11 @@ fn optional_position_arg(spec : ArrayView[String]) -> @argparse.PositionArg {
 }
 
 ///|
-fn option_args(specs : ArrayView[Array[String]]) -> Array[@argparse.OptionArg] {
-  let args = []
-  for spec in specs {
-    args.push(option_arg(spec))
-  }
-  args
-}
-
-///|
-fn flag_args(specs : ArrayView[Array[String]]) -> Array[@argparse.FlagArg] {
-  let args = []
-  for spec in specs {
-    args.push(flag_arg(spec))
-  }
-  args
-}
-
-///|
-fn optional_position_args(
+fn[T] map_specs(
   specs : ArrayView[Array[String]],
-) -> Array[@argparse.PositionArg] {
-  let args = []
-  for spec in specs {
-    args.push(optional_position_arg(spec))
-  }
-  args
+  mapper : (ArrayView[String]) -> T,
+) -> Array[T] {
+  specs.map(spec => mapper(spec))
 }
 
 ///|
@@ -165,9 +144,9 @@ fn cli_command() -> @argparse.Command {
     "momoka",
     about="Create a minimal MoonBit module",
     version=VERSION,
-    options=option_args(project_options),
-    flags=flag_args(project_flags),
-    positionals=optional_position_args(project_positionals),
+    options=map_specs(project_options, option_arg),
+    flags=map_specs(project_flags, flag_arg),
+    positionals=map_specs(project_positionals, optional_position_arg),
     subcommands=[preferences_command("cfg")],
     disable_help_subcommand=true,
   )
