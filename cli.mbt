@@ -1,6 +1,6 @@
 ///|
 /// Also see: moon.mod.json - `version`
-pub const VERSION = "0.2.4"
+pub const VERSION = "0.3.0"
 
 ///|
 const DEFAULT_LICENSE : String = "AGPL-3.0"
@@ -13,8 +13,14 @@ const DEFAULT_TARGET : String = "native"
 
 ///|
 fn usage_text() -> String {
+  let momoka = @chalk.chalk().color(YellowBright).render("Momoka")
+  let version = @chalk.chalk().modifier(Bold).render("\{VERSION}")
+  let description = @chalk.chalk()
+    .modifier(Bold)
+    .render("Create a minimal MoonBit module")
+  let intro = "\{momoka} \{version} - \{description}"
   (
-    $|Momoka \{VERSION} - Create a minimal MoonBit module
+    $|\{intro}
     $|\{cli_command().render_help()}
     $|\{BANNER_TEXT}
   )
@@ -142,7 +148,6 @@ fn cli_command() -> @argparse.Command {
   let project_positionals = [["path", "", "Project directory path."]]
   @argparse.Command::new(
     "momoka",
-    about="Create a minimal MoonBit module",
     version=VERSION,
     options=map_specs(project_options, option_arg),
     flags=map_specs(project_flags, flag_arg),
