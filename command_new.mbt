@@ -10,12 +10,13 @@ async fn create_project(
       "path already exists: \{project_dir}; use --init to initialize an existing directory",
     )
   }
-  match ensure_dir_recursive(project_dir) {
-    Ok(_) => ()
-    Err(err) => return Err(err)
-  }
-  let result = write_project_files(project_dir, config, username, preferred)
-  result.map(_ => project_dir)
+  write_project_after_check(
+    project_dir,
+    ensure_dir_recursive(project_dir),
+    config,
+    username,
+    preferred,
+  )
 }
 
 ///|
@@ -25,7 +26,24 @@ async fn init_project(
   preferred : PreferredConfig,
 ) -> Result[String, String] {
   let project_dir = @fs.realpath(config.path).to_string()
-  match ensure_existing_dir(project_dir) {
+  write_project_after_check(
+    project_dir,
+    ensure_existing_dir(project_dir),
+    config,
+    username,
+    preferred,
+  )
+}
+
+///|
+async fn write_project_after_check(
+  project_dir : String,
+  check_result : Result[Unit, String],
+  config : CliConfig,
+  username : String,
+  preferred : PreferredConfig,
+) -> Result[String, String] {
+  match check_result {
     Ok(_) => ()
     Err(err) => return Err(err)
   }
