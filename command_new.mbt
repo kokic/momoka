@@ -14,10 +14,8 @@ async fn create_project(
     Ok(_) => ()
     Err(err) => return Err(err)
   }
-  match write_project_files(project_dir, config, username, preferred) {
-    Ok(_) => Ok(project_dir)
-    Err(err) => Err(err)
-  }
+  let result = write_project_files(project_dir, config, username, preferred)
+  result.map(_ => project_dir)
 }
 
 ///|
@@ -31,10 +29,8 @@ async fn init_project(
     Ok(_) => ()
     Err(err) => return Err(err)
   }
-  match write_project_files(project_dir, config, username, preferred) {
-    Ok(_) => Ok(project_dir)
-    Err(err) => Err(err)
-  }
+  let result = write_project_files(project_dir, config, username, preferred)
+  result.map(_ => project_dir)
 }
 
 ///|
@@ -91,9 +87,5 @@ async fn write_project_files(
 
   let gitignore_content = file_content_gitignore()
   let gitignore_path = @path.Path::join(project_dir, ".gitignore").to_string()
-  match write_string_file(gitignore_path, gitignore_content) {
-    Ok(_) => ()
-    Err(err) => return Err(err)
-  }
-  Ok(())
+  write_string_file(gitignore_path, gitignore_content)
 }

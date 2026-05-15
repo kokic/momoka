@@ -27,26 +27,22 @@ async fn ensure_username() -> Result[String, String] {
   let preferred_dir = preferred_dir_path(home)
   let preferred_file = preferred_file_path(home)
   let preferred = load_preferred_config(preferred_file)
-  match preferred.username {
-    Some(username) => Ok(username)
-    None => {
-      match ensure_dir(preferred_dir) {
-        Ok(_) => ()
-        Err(err) => return Err(err)
-      }
-      guard prompt_username(5) is Some(username) else {
-        return Err("failed to read username from stdin")
-      }
-      let updated_preferred : PreferredConfig = {
-        username: Some(username),
-        license: preferred.license,
-        repository_hosting: preferred.repository_hosting,
-        preferred_target: preferred.preferred_target,
-      }
-      match save_preferred_config(preferred_file, updated_preferred) {
-        Ok(_) => Ok(username)
-        Err(err) => Err(err)
-      }
+  if preferred.username is Some(username) {
+    Ok(username)
+  } else {
+    match ensure_dir(preferred_dir) {
+      Ok(_) => ()
+      Err(err) => return Err(err)
     }
+    guard prompt_username(5) is Some(username) else {
+      return Err("failed to read username from stdin")
+    }
+    let updated_preferred : PreferredConfig = {
+      username: Some(username),
+      license: preferred.license,
+      repository_hosting: preferred.repository_hosting,
+      preferred_target: preferred.preferred_target,
+    }
+    save_preferred_config(preferred_file, updated_preferred).map(_ => username)
   }
 }

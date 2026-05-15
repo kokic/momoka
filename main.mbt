@@ -47,19 +47,14 @@ async fn run_project_request(config : CliConfig) -> Result[String, String] {
       } else {
         create_project(config, username, preferred)
       }
-      match result {
-        Ok(project_dir) => {
-          let action = if config.initialize_existing {
-            "initialized"
-          } else {
-            "created and initialized"
-          }
-          Ok(
-            "\{action} moon.mod.json, moon.pkg and .gitignore in \{project_dir}",
-          )
+      result.map(project_dir => {
+        let action = if config.initialize_existing {
+          "initialized"
+        } else {
+          "created and initialized"
         }
-        Err(err) => Err(err)
-      }
+        "\{action} moon.mod.json, moon.pkg and .gitignore in \{project_dir}"
+      })
     }
     Err(err) => Err(err)
   }

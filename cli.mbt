@@ -158,10 +158,15 @@ fn cli_command() -> @argparse.Command {
 
 ///|
 fn matched_value(matches : @argparse.Matches, value_id : String) -> String? {
-  match matches.values.get(value_id) {
-    Some(values) if values.length() > 0 => Some(values[values.length() - 1])
-    _ => None
-  }
+  matches.values
+  .get(value_id)
+  .bind(values => {
+    if values.length() > 0 {
+      Some(values[values.length() - 1])
+    } else {
+      None
+    }
+  })
 }
 
 ///|

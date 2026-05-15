@@ -22,10 +22,7 @@ fn preferred_display_value(
   current : String?,
   builtin_default : String,
 ) -> String {
-  match current {
-    Some(value) => value
-    None => "<unset> (effective: \{builtin_default})"
-  }
+  current.unwrap_or("<unset> (effective: \{builtin_default})")
 }
 
 ///|
@@ -74,10 +71,9 @@ async fn configure_preferred_defaults() -> Result[String, String] {
     repository_hosting,
     preferred_target,
   }
-  match save_preferred_config(preferred_file, updated_preferred) {
-    Ok(_) => Ok("updated preferences in \{preferred_file}")
-    Err(err) => Err(err)
-  }
+  save_preferred_config(preferred_file, updated_preferred).map(_ => {
+    "updated preferences in \{preferred_file}"
+  })
 }
 
 ///|
