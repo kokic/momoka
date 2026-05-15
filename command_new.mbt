@@ -55,15 +55,15 @@ async fn write_project_files(
   let module_name = module_name_from_project_dir(project_dir)
   let license = Option::unwrap_or(
     config.license,
-    Option::unwrap_or(preferred.license, "AGPL-3.0"),
+    Option::unwrap_or(preferred.license, DEFAULT_LICENSE),
   )
   let repository_hosting = Option::unwrap_or(
     config.repository_hosting,
-    Option::unwrap_or(preferred.repository_hosting, "github.com"),
+    Option::unwrap_or(preferred.repository_hosting, DEFAULT_HOST),
   )
   let preferred_target = Option::unwrap_or(
     config.preferred_target,
-    Option::unwrap_or(preferred.preferred_target, "native"),
+    Option::unwrap_or(preferred.preferred_target, DEFAULT_TARGET),
   )
   let moon_mod_content = file_content_moon_mod_json(
     username~,

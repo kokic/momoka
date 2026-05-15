@@ -42,7 +42,11 @@ async fn configure_preferred_defaults() -> Result[String, String] {
   println("leave input empty to keep existing preference")
 
   let license = match
-    prompt_preferred_field("default license", preferred.license, "AGPL-3.0") {
+    prompt_preferred_field(
+      "default license",
+      preferred.license,
+      DEFAULT_LICENSE,
+    ) {
     Ok(value) => value
     Err(err) => return Err(err)
   }
@@ -50,7 +54,7 @@ async fn configure_preferred_defaults() -> Result[String, String] {
     prompt_preferred_field(
       "default host",
       preferred.repository_hosting,
-      "github.com",
+      DEFAULT_HOST,
     ) {
     Ok(value) => value
     Err(err) => return Err(err)
@@ -59,7 +63,7 @@ async fn configure_preferred_defaults() -> Result[String, String] {
     prompt_preferred_field(
       "default target",
       preferred.preferred_target,
-      "native",
+      DEFAULT_TARGET,
     ) {
     Ok(value) => value
     Err(err) => return Err(err)
@@ -83,14 +87,14 @@ async fn show_preferred_defaults() -> Result[String, String] {
   }
   let preferred_file = preferred_file_path(home)
   let preferred = load_preferred_config(preferred_file)
-  let license = preferred_display_value(preferred.license, "AGPL-3.0")
+  let license = preferred_display_value(preferred.license, DEFAULT_LICENSE)
   let repository_hosting = preferred_display_value(
     preferred.repository_hosting,
-    "github.com",
+    DEFAULT_HOST,
   )
   let preferred_target = preferred_display_value(
     preferred.preferred_target,
-    "native",
+    DEFAULT_TARGET,
   )
   Ok(
     (

@@ -3,6 +3,15 @@
 pub const VERSION = "0.2.4"
 
 ///|
+const DEFAULT_LICENSE : String = "AGPL-3.0"
+
+///|
+const DEFAULT_HOST : String = "github.com"
+
+///|
+const DEFAULT_TARGET : String = "native"
+
+///|
 fn usage_text() -> String {
   (
     $|Momoka \{VERSION} - Create a minimal MoonBit module
@@ -136,9 +145,17 @@ fn preferences_command(
 ///|
 fn cli_command() -> @argparse.Command {
   let project_options = [
-    ["license", "l", "License for moon.mod.json [default: prefs or AGPL-3.0]."],
-    ["host", "", "Repository hosting domain [default: prefs or github.com]."],
-    ["target", "t", "Preferred target [default: prefs or native]."],
+    [
+      "license",
+      "l",
+      "License for moon.mod.json [default: prefs or \{DEFAULT_LICENSE}].",
+    ],
+    [
+      "host",
+      "",
+      "Repository hosting domain [default: prefs or \{DEFAULT_HOST}].",
+    ],
+    ["target", "t", "Preferred target [default: prefs or \{DEFAULT_TARGET}]."],
   ]
   let project_flags = [
     ["init", "i", "Initialize in an existing directory instead of creating it."],
