@@ -35,5 +35,6 @@ fn file_content_gitignore() -> String {
     #|.mooncakes/
     #|.moonagent/
     #|.local/
+    #|.mbti
   )
 }
