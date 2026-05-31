@@ -1,5 +1,5 @@
 ///|
-fn file_content_moon_mod_json(
+fn file_content_moon_mod(
   username~ : String,
   module_name~ : String,
   license : String,
@@ -7,17 +7,55 @@ fn file_content_moon_mod_json(
   preferred_target : String,
 ) -> String {
   (
-    #|{
-    $|  "name": "\{username}/\{module_name}",
-    #|  "version": "0.1.0",
-    #|  "deps": {},
-    $|  "repository": "https://\{repository_hosting}/\{username}/\{module_name}",
-    $|  "license": "\{license}",
-    #|  "keywords": [],
-    #|  "readme": "README.md",
-    #|  "description": "",
-    $|  "preferred-target": "\{preferred_target}"
-    #|}
+    $|name = "\{username}/\{module_name}"
+    #|
+    #|version = "0.1.0"
+    #|
+    #|import {}
+    #|
+    #|readme = "README.md"
+    #|
+    $|repository = "https://\{repository_hosting}/\{username}/\{module_name}"
+    #|
+    $|license = "\{license}"
+    #|
+    #|keywords = []
+    #|
+    #|description = ""
+    #|
+    $|preferred_target = "\{preferred_target}"
+  )
+}
+
+///|
+test "file_content_moon_mod uses suffixless moon.mod format" {
+  assert_eq(
+    file_content_moon_mod(
+      username="kokic",
+      module_name="demo",
+      "MIT",
+      "gitlab.com",
+      "js",
+    ),
+    (
+      #|name = "kokic/demo"
+      #|
+      #|version = "0.1.0"
+      #|
+      #|import {}
+      #|
+      #|readme = "README.md"
+      #|
+      #|repository = "https://gitlab.com/kokic/demo"
+      #|
+      #|license = "MIT"
+      #|
+      #|keywords = []
+      #|
+      #|description = ""
+      #|
+      #|preferred_target = "js"
+    ),
   )
 }
 

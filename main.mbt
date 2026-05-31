@@ -53,7 +53,7 @@ async fn run_project_request(config : CliConfig) -> Result[String, String] {
         } else {
           "created and initialized"
         }
-        "\{action} moon.mod.json, moon.pkg and .gitignore in \{project_dir}"
+        "\{action} moon.mod, moon.pkg and .gitignore in \{project_dir}"
       })
     }
     Err(err) => Err(err)

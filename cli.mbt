@@ -1,6 +1,6 @@
 ///|
-/// Also see: moon.mod.json - `version`
-pub const VERSION = "0.3.0"
+/// Also see: moon.mod - `version`
+pub const VERSION = "0.4.0"
 
 ///|
 const DEFAULT_LICENSE : String = "AGPL-3.0"
@@ -133,7 +133,7 @@ fn cli_command() -> @argparse.Command {
     [
       "license",
       "l",
-      "License for moon.mod.json [default: prefs or \{DEFAULT_LICENSE}].",
+      "License for moon.mod [default: prefs or \{DEFAULT_LICENSE}].",
     ],
     [
       "host",

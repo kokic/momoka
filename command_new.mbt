@@ -83,14 +83,14 @@ async fn write_project_files(
     config.preferred_target,
     Option::unwrap_or(preferred.preferred_target, DEFAULT_TARGET),
   )
-  let moon_mod_content = file_content_moon_mod_json(
+  let moon_mod_content = file_content_moon_mod(
     username~,
     module_name~,
     license,
     repository_hosting,
     preferred_target,
   )
-  let moon_mod_path = @path.Path::join(project_dir, "moon.mod.json").to_string()
+  let moon_mod_path = @path.Path::join(project_dir, "moon.mod").to_string()
   match write_string_file(moon_mod_path, moon_mod_content) {
     Ok(_) => ()
     Err(err) => return Err(err)
