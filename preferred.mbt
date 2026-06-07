@@ -87,10 +87,11 @@ async fn load_preferred_config(preferred_file : String) -> PreferredConfig {
   if !@fs.exists(preferred_file) {
     empty_preferred_config()
   } else {
-    (try? @fs.read_file(preferred_file))
-    .to_option()
-    .map(content => parse_preferred_config(content.text()))
-    .unwrap_or(empty_preferred_config())
+    try @fs.read_file(preferred_file) catch {
+      _ => empty_preferred_config()
+    } noraise {
+      content => parse_preferred_config(content.text())
+    }
   }
 }
 
@@ -112,9 +113,11 @@ async fn ensure_dir(path : String) -> Result[Unit, String] {
       _ => Err("path exists but is not a directory: \{path}")
     }
   } else {
-    Result::map_err(try? @fs.mkdir(path), err => {
-      "failed to create directory \{path}: \{@debug.to_repr(err)}"
-    })
+    try @fs.mkdir(path) catch {
+      err => Err("failed to create directory \{path}: \{@debug.to_repr(err)}")
+    } noraise {
+      _ => Ok(())
+    }
   }
 }
 
