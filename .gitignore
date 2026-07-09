@@ -5,3 +5,4 @@ target/
 .moonagent/
 .local/
 release.ps1
+*.mbti

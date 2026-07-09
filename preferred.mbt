@@ -84,14 +84,14 @@ fn preferred_config_to_content(preferred : PreferredConfig) -> String {
 
 ///|
 async fn load_preferred_config(preferred_file : String) -> PreferredConfig {
-  if !@fs.exists(preferred_file) {
-    empty_preferred_config()
-  } else {
-    try @fs.read_file(preferred_file) catch {
-      _ => empty_preferred_config()
-    } noraise {
-      content => parse_preferred_config(content.text())
-    }
+  match path_exists(preferred_file) {
+    Ok(false) | Err(_) => empty_preferred_config()
+    Ok(true) =>
+      try @fs.read_file(preferred_file) catch {
+        _ => empty_preferred_config()
+      } noraise {
+        content => parse_preferred_config(content.text())
+      }
   }
 }
 
@@ -105,19 +105,21 @@ async fn save_preferred_config(
 
 ///|
 async fn ensure_dir(path : String) -> Result[Unit, String] {
-  if @fs.exists(path) {
-    try @fs.kind(path) catch {
-      err => Err("failed to inspect directory \{path}: \{@debug.to_repr(err)}")
-    } noraise {
-      Directory => Ok(())
-      _ => Err("path exists but is not a directory: \{path}")
-    }
-  } else {
-    try @fs.mkdir(path) catch {
-      err => Err("failed to create directory \{path}: \{@debug.to_repr(err)}")
-    } noraise {
-      _ => Ok(())
-    }
+  match path_exists(path) {
+    Ok(true) =>
+      try @fs.kind(path) catch {
+        err => Err("failed to inspect directory \{path}: \{@debug.to_repr(err)}")
+      } noraise {
+        Directory => Ok(())
+        _ => Err("path exists but is not a directory: \{path}")
+      }
+    Ok(false) =>
+      try @fs.mkdir(path) catch {
+        err => Err("failed to create directory \{path}: \{@debug.to_repr(err)}")
+      } noraise {
+        _ => Ok(())
+      }
+    Err(err) => Err(err)
   }
 }
 

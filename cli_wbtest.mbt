@@ -124,3 +124,62 @@ test "preferred_config_to_content" {
     ),
   )
 }
+
+///|
+async test "create_project creates missing project directory" {
+  @async.with_task_group() <| group => {
+    let base_path = @fs.tmpdir(prefix="momoka_create_project_test")
+    group.add_defer(() =>
+      try @fs.rmdir(base_path, recursive=true) catch {
+        _ => ()
+      } noraise {
+        _ => ()
+      })
+    let project_path = @path.Path::join(base_path, "demo").to_string()
+    let config : CliConfig = {
+      path: project_path,
+      license: None,
+      repository_hosting: None,
+      preferred_target: None,
+      initialize_existing: false,
+    }
+    match create_project(config, "tester", empty_preferred_config()) {
+      Ok(project_dir) => {
+        guard @fs.kind(project_dir) is Directory else {
+          fail("expected project directory to exist")
+        }
+        assert_eq(
+          @fs.exists(@path.Path::join(project_dir, "moon.mod").to_string()),
+          true,
+        )
+        assert_eq(
+          @fs.exists(@path.Path::join(project_dir, "moon.pkg").to_string()),
+          true,
+        )
+        assert_eq(
+          @fs.exists(@path.Path::join(project_dir, ".gitignore").to_string()),
+          true,
+        )
+      }
+      Err(err) => fail(err)
+    }
+  }
+}
+
+///|
+async test "ensure_existing_dir rejects files" {
+  @async.with_task_group() <| group => {
+    let base_path = @fs.tmpdir(prefix="momoka_existing_file_test")
+    let path = @path.Path::join(base_path, "file").to_string()
+    group.add_defer(() =>
+      try @fs.rmdir(base_path, recursive=true) catch {
+        _ => ()
+      } noraise {
+        _ => ()
+      })
+    @fs.write_file(path, "", create_mode=CreateOrTruncate)
+    guard ensure_existing_dir(path) is Err(_) else {
+      fail("expected file path to be rejected")
+    }
+  }
+}

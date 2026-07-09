@@ -1,20 +1,21 @@
 ///|
-async fn prompt_username(remaining_retry : Int) -> String? {
+async fn prompt_username(remaining_retry : Int) -> Result[String, String] {
   if remaining_retry <= 0 {
-    None
+    Err("failed to read username from stdin")
   } else {
     println("(first) please input MoonBit username:")
     match read_line_from_stdin() {
-      Some(line) => {
+      Ok(Some(line)) => {
         let username = line.trim().to_owned()
         if username.is_empty() {
           println("username cannot be empty")
           prompt_username(remaining_retry - 1)
         } else {
-          Some(username)
+          Ok(username)
         }
       }
-      None => None
+      Ok(None) => Err("failed to read username from stdin")
+      Err(err) => Err(err)
     }
   }
 }
@@ -34,8 +35,9 @@ async fn ensure_username() -> Result[String, String] {
       Ok(_) => ()
       Err(err) => return Err(err)
     }
-    guard prompt_username(5) is Some(username) else {
-      return Err("failed to read username from stdin")
+    let username = match prompt_username(5) {
+      Ok(username) => username
+      Err(err) => return Err(err)
     }
     let updated_preferred : PreferredConfig = {
       username: Some(username),

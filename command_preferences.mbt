@@ -6,8 +6,10 @@ async fn prompt_preferred_field(
 ) -> Result[String?, String] {
   let current_display = preferred_display_value(current, builtin_default)
   println("\{label} [\{current_display}] (press Enter to keep):")
-  guard read_line_from_stdin() is Some(line) else {
-    return Err("failed to read input from stdin")
+  let line = match read_line_from_stdin() {
+    Ok(Some(line)) => line
+    Ok(None) => return Err("failed to read input from stdin")
+    Err(err) => return Err(err)
   }
   let value = line.trim().to_owned()
   if value.is_empty() {

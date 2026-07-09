@@ -4,11 +4,17 @@ async fn create_project(
   username : String,
   preferred : PreferredConfig,
 ) -> Result[String, String] {
-  let project_dir = @fs.realpath(config.path).to_string()
-  if @fs.exists(project_dir) {
-    return Err(
-      "path already exists: \{project_dir}; use --init to initialize an existing directory",
-    )
+  let project_dir = match absolute_path(config.path) {
+    Ok(path) => path
+    Err(err) => return Err(err)
+  }
+  match path_exists(project_dir) {
+    Ok(true) =>
+      return Err(
+        "path already exists: \{project_dir}; use --init to initialize an existing directory",
+      )
+    Ok(false) => ()
+    Err(err) => return Err(err)
   }
   write_project_after_check(
     project_dir,
@@ -25,7 +31,10 @@ async fn init_project(
   username : String,
   preferred : PreferredConfig,
 ) -> Result[String, String] {
-  let project_dir = @fs.realpath(config.path).to_string()
+  let project_dir = match absolute_path(config.path) {
+    Ok(path) => path
+    Err(err) => return Err(err)
+  }
   write_project_after_check(
     project_dir,
     ensure_existing_dir(project_dir),
@@ -53,11 +62,15 @@ async fn write_project_after_check(
 
 ///|
 async fn ensure_existing_dir(path : String) -> Result[Unit, String] {
-  guard @fs.exists(path) else {
-    return Err("directory does not exist: \{path}")
+  match path_exists(path) {
+    Ok(true) => ()
+    Ok(false) => return Err("directory does not exist: \{path}")
+    Err(err) => return Err(err)
   }
 
-  match @fs.kind(path) {
+  try @fs.kind(path) catch {
+    err => Err("failed to inspect directory \{path}: \{@debug.to_repr(err)}")
+  } noraise {
     Directory => Ok(())
     _ => Err("path exists but is not a directory: \{path}")
   }
