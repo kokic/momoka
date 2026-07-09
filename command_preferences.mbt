@@ -60,7 +60,10 @@ async fn configure_preferred_defaults() -> Result[String, String] {
     Err(err) => return Err(err)
   }
   let preferred_file = preferred_file_path(home)
-  let preferred = load_preferred_config(preferred_file)
+  let preferred = match load_preferred_config(preferred_file) {
+    Ok(preferred) => preferred
+    Err(err) => return Err(err)
+  }
 
   println("configure preferred defaults")
   println("leave input empty to keep existing preference")
@@ -104,7 +107,10 @@ async fn show_preferred_defaults() -> Result[String, String] {
     return Err("cannot locate home directory from HOME/USERPROFILE")
   }
   let preferred_file = preferred_file_path(home)
-  let preferred = load_preferred_config(preferred_file)
+  let preferred = match load_preferred_config(preferred_file) {
+    Ok(preferred) => preferred
+    Err(err) => return Err(err)
+  }
   let license = preferred_display_value(preferred.license, DEFAULT_LICENSE)
   let repository_hosting = preferred_display_value(
     preferred.repository_hosting,

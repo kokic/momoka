@@ -39,7 +39,11 @@ async fn run_project_request(config : CliConfig) -> Result[String, String] {
   match ensure_username() {
     Ok(username) => {
       let preferred = match home_dir() {
-        Some(home) => load_preferred_config(preferred_file_path(home))
+        Some(home) =>
+          match load_preferred_config(preferred_file_path(home)) {
+            Ok(preferred) => preferred
+            Err(err) => return Err(err)
+          }
         None => empty_preferred_config()
       }
       let result = if config.initialize_existing {

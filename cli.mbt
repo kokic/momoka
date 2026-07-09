@@ -117,11 +117,7 @@ fn preferences_command(
     name,
     about="Configure default license / host / target, or print them.",
     flags=[
-      @argparse.FlagArg(
-        "show",
-        long="show",
-        about="Print current preferences.",
-      ),
+      @argparse.FlagArg("show", long="show", about="Print current preferences."),
     ],
     hidden~,
   )
@@ -159,15 +155,7 @@ fn cli_command() -> @argparse.Command {
 
 ///|
 fn matched_value(matches : @argparse.Matches, value_id : String) -> String? {
-  matches.values
-  .get(value_id)
-  .bind(values => {
-    if values.length() > 0 {
-      Some(values[values.length() - 1])
-    } else {
-      None
-    }
-  })
+  matches.values.get(value_id).bind(values => values.last())
 }
 
 ///|
@@ -200,15 +188,23 @@ fn decode_preferences_request(matches : @argparse.Matches) -> CliRequest {
 }
 
 ///|
+fn decode_subcommand(
+  name : String,
+  submatches : @argparse.Matches,
+) -> Result[CliRequest, String] {
+  if name == "cfg" {
+    Ok(decode_preferences_request(submatches))
+  } else {
+    Err("unsupported CLI subcommand: \{name}")
+  }
+}
+
+///|
 fn decode_cli_matches(
   matches : @argparse.Matches,
 ) -> Result[CliRequest, String] {
   match matches.subcommand {
-    Some((name, submatches)) =>
-      match name {
-        "cfg" => Ok(decode_preferences_request(submatches))
-        _ => abort("unsupported CLI subcommand")
-      }
+    Some((name, submatches)) => decode_subcommand(name, submatches)
     None => decode_project_request(matches)
   }
 }

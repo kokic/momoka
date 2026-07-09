@@ -83,14 +83,20 @@ fn preferred_config_to_content(preferred : PreferredConfig) -> String {
 }
 
 ///|
-async fn load_preferred_config(preferred_file : String) -> PreferredConfig {
+async fn load_preferred_config(
+  preferred_file : String,
+) -> Result[PreferredConfig, String] {
   match path_exists(preferred_file) {
-    Ok(false) | Err(_) => empty_preferred_config()
+    Ok(false) => Ok(empty_preferred_config())
+    Err(err) => Err(err)
     Ok(true) =>
       try @fs.read_file(preferred_file) catch {
-        _ => empty_preferred_config()
+        err =>
+          Err(
+            "failed to read preferences \{preferred_file}: \{@debug.to_repr(err)}",
+          )
       } noraise {
-        content => parse_preferred_config(content.text())
+        content => Ok(parse_preferred_config(content.text()))
       }
   }
 }
@@ -108,7 +114,8 @@ async fn ensure_dir(path : String) -> Result[Unit, String] {
   match path_exists(path) {
     Ok(true) =>
       try @fs.kind(path) catch {
-        err => Err("failed to inspect directory \{path}: \{@debug.to_repr(err)}")
+        err =>
+          Err("failed to inspect directory \{path}: \{@debug.to_repr(err)}")
       } noraise {
         Directory => Ok(())
         _ => Err("path exists but is not a directory: \{path}")

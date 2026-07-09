@@ -27,7 +27,10 @@ async fn ensure_username() -> Result[String, String] {
   }
   let preferred_dir = preferred_dir_path(home)
   let preferred_file = preferred_file_path(home)
-  let preferred = load_preferred_config(preferred_file)
+  let preferred = match load_preferred_config(preferred_file) {
+    Ok(preferred) => preferred
+    Err(err) => return Err(err)
+  }
   if preferred.username is Some(username) {
     Ok(username)
   } else {
