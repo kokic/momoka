@@ -5,21 +5,13 @@ async fn read_line_from_stdin() -> String? {
 
 ///|
 async fn ensure_dir_recursive(path : String) -> Result[Unit, String] {
-  if path.is_empty() {
-    return Ok(())
+  guard !path.is_empty() else { Ok(()) }
+  guard !@fs.exists(path) else { ensure_dir(path) }
+  let parent = @path.Path::dirname(path).to_string()
+  if !parent.is_empty() && parent != path {
+    return ensure_dir_recursive(parent)
   }
-  if @fs.exists(path) {
-    ensure_dir(path)
-  } else {
-    let parent = @path.Path::dirname(path).to_string()
-    if !parent.is_empty() && parent != path {
-      match ensure_dir_recursive(parent) {
-        Ok(_) => ()
-        Err(err) => return Err(err)
-      }
-    }
-    ensure_dir(path)
-  }
+  ensure_dir(path)
 }
 
 ///|
@@ -37,14 +29,10 @@ async fn write_string_file(
 ///|
 fn home_dir() -> String? {
   let home = @sys.get_env_var("HOME")
-  if home is Some(path) && !path.is_empty() {
-    Some(path)
-  } else {
+  guard home is Some(path) && !path.is_empty() else {
     let userprofile = @sys.get_env_var("USERPROFILE")
-    if userprofile is Some(path) && !path.is_empty() {
-      Some(path)
-    } else {
-      None
-    }
+    guard userprofile is Some(path) && !path.is_empty() else { None }
+    Some(path)
   }
+  Some(path)
 }
