@@ -78,13 +78,13 @@ fn cli_short(short : String) -> Char? {
 ///|
 fn option_arg(spec : ArrayView[String]) -> @argparse.OptionArg {
   let (id, short, about) = cli_arg_parts(spec)
-  @argparse.OptionArg::new(id, short?=cli_short(short), long=id, about~)
+  @argparse.OptionArg(id, short?=cli_short(short), long=id, about~)
 }
 
 ///|
 fn flag_arg(spec : ArrayView[String]) -> @argparse.FlagArg {
   let (id, short, about) = cli_arg_parts(spec)
-  @argparse.FlagArg::new(id, short?=cli_short(short), long=id, about~)
+  @argparse.FlagArg(id, short?=cli_short(short), long=id, about~)
 }
 
 ///|
@@ -93,10 +93,10 @@ fn optional_position_arg(spec : ArrayView[String]) -> @argparse.PositionArg {
   guard short.is_empty() else {
     abort("positional CLI arg spec cannot have short arg")
   }
-  @argparse.PositionArg::new(
+  @argparse.PositionArg(
     id,
     about~,
-    num_args=@argparse.ValueRange::new(lower=0, upper=1),
+    num_args=@argparse.ValueRange(lower=0, upper=1),
   )
 }
 
@@ -113,11 +113,11 @@ fn preferences_command(
   name : String,
   hidden? : Bool = false,
 ) -> @argparse.Command {
-  @argparse.Command::new(
+  @argparse.Command(
     name,
     about="Configure default license / host / target, or print them.",
     flags=[
-      @argparse.FlagArg::new(
+      @argparse.FlagArg(
         "show",
         long="show",
         about="Print current preferences.",
@@ -146,7 +146,7 @@ fn cli_command() -> @argparse.Command {
     ["init", "i", "Initialize in an existing directory instead of creating it."],
   ]
   let project_positionals = [["path", "", "Project directory path."]]
-  @argparse.Command::new(
+  @argparse.Command(
     "momoka",
     version=VERSION,
     options=map_specs(project_options, option_arg),

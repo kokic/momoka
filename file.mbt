@@ -8,21 +8,21 @@ fn file_content_moon_mod(
 ) -> String {
   (
     $|name = "\{username}/\{module_name}"
-    #|
-    #|version = "0.1.0"
-    #|
-    #|import {}
-    #|
-    #|readme = "README.md"
-    #|
+    $|
+    $|version = "0.1.0"
+    $|
+    $|import {}
+    $|
+    $|readme = "README.md"
+    $|
     $|repository = "https://\{repository_hosting}/\{username}/\{module_name}"
-    #|
+    $|
     $|license = "\{license}"
-    #|
-    #|keywords = []
-    #|
-    #|description = ""
-    #|
+    $|
+    $|keywords = []
+    $|
+    $|description = ""
+    $|
     $|preferred_target = "\{preferred_target}"
   )
 }

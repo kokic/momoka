@@ -114,7 +114,7 @@ async fn show_preferred_defaults() -> Result[String, String] {
   )
   Ok(
     (
-      #|current preferences
+      $|current preferences
       $|file: \{preferred_file}
       $|license: \{license}
       $|host: \{repository_hosting}
