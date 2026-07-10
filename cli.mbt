@@ -12,6 +12,12 @@ const DEFAULT_HOST : String = "github.com"
 const DEFAULT_TARGET : String = "native"
 
 ///|
+const CLI_NAME : String = "momoka"
+
+///|
+const CFG_COMMAND : String = "cfg"
+
+///|
 fn usage_text() -> String {
   let momoka = @chalk.chalk().color(YellowBright).render("Momoka")
   let version = @chalk.chalk().modifier(Bold).render("\{VERSION}")
@@ -41,7 +47,13 @@ priv struct CliConfig {
   license : String?
   repository_hosting : String?
   preferred_target : String?
-  initialize_existing : Bool
+  mode : ProjectMode
+}
+
+///|
+priv enum ProjectMode {
+  Create
+  Init
 }
 
 ///|
@@ -52,59 +64,56 @@ priv enum PreferencesRequest {
 
 ///|
 priv enum CliRequest {
-  Help
+  Help(HelpTopic)
   Project(CliConfig)
   Preferences(PreferencesRequest)
 }
 
 ///|
-fn cli_arg_parts(spec : ArrayView[String]) -> (String, String, String) {
-  match spec {
-    [id, short, about] => (id, short, about)
-    _ => abort("invalid CLI arg spec")
-  }
+priv enum HelpTopic {
+  TopLevelHelp
+  PreferencesHelp
 }
 
 ///|
-fn cli_short(short : String) -> Char? {
-  if short.is_empty() {
-    None
-  } else {
-    guard short.char_length() == 1 else { abort("invalid CLI short arg spec") }
-    short.get_char(0)
-  }
+priv struct NamedArgSpec {
+  id : String
+  short : Char?
+  about : String
 }
 
 ///|
-fn option_arg(spec : ArrayView[String]) -> @argparse.OptionArg {
-  let (id, short, about) = cli_arg_parts(spec)
-  @argparse.OptionArg(id, short?=cli_short(short), long=id, about~)
+priv struct PositionArgSpec {
+  id : String
+  about : String
 }
 
 ///|
-fn flag_arg(spec : ArrayView[String]) -> @argparse.FlagArg {
-  let (id, short, about) = cli_arg_parts(spec)
-  @argparse.FlagArg(id, short?=cli_short(short), long=id, about~)
+fn option_arg(spec : NamedArgSpec) -> @argparse.OptionArg {
+  @argparse.OptionArg(
+    spec.id,
+    short?=spec.short,
+    long=spec.id,
+    about=spec.about,
+  )
 }
 
 ///|
-fn optional_position_arg(spec : ArrayView[String]) -> @argparse.PositionArg {
-  let (id, short, about) = cli_arg_parts(spec)
-  guard short.is_empty() else {
-    abort("positional CLI arg spec cannot have short arg")
-  }
+fn flag_arg(spec : NamedArgSpec) -> @argparse.FlagArg {
+  @argparse.FlagArg(spec.id, short?=spec.short, long=spec.id, about=spec.about)
+}
+
+///|
+fn optional_position_arg(spec : PositionArgSpec) -> @argparse.PositionArg {
   @argparse.PositionArg(
-    id,
-    about~,
+    spec.id,
+    about=spec.about,
     num_args=@argparse.ValueRange(lower=0, upper=1),
   )
 }
 
 ///|
-fn[T] map_specs(
-  specs : ArrayView[Array[String]],
-  mapper : (ArrayView[String]) -> T,
-) -> Array[T] {
+fn[T, U] map_specs(specs : ArrayView[T], mapper : (T) -> U) -> Array[U] {
   specs.map(spec => mapper(spec))
 }
 
@@ -124,31 +133,60 @@ fn preferences_command(
 }
 
 ///|
+fn preferences_help_text() -> String {
+  preferences_command("\{CLI_NAME} \{CFG_COMMAND}").render_help()
+}
+
+///|
+fn help_text(topic : HelpTopic) -> String {
+  match topic {
+    TopLevelHelp => usage_text()
+    PreferencesHelp => preferences_help_text()
+  }
+}
+
+///|
+fn project_action_text(mode : ProjectMode) -> String {
+  match mode {
+    Create => "created and initialized"
+    Init => "initialized"
+  }
+}
+
+///|
 fn cli_command() -> @argparse.Command {
   let project_options = [
-    [
-      "license",
-      "l",
-      "License for moon.mod [default: prefs or \{DEFAULT_LICENSE}].",
-    ],
-    [
-      "host",
-      "",
-      "Repository hosting domain [default: prefs or \{DEFAULT_HOST}].",
-    ],
-    ["target", "t", "Preferred target [default: prefs or \{DEFAULT_TARGET}]."],
+    {
+      id: "license",
+      short: Some('l'),
+      about: "License for moon.mod [default: prefs or \{DEFAULT_LICENSE}].",
+    },
+    {
+      id: "host",
+      short: None,
+      about: "Repository hosting domain [default: prefs or \{DEFAULT_HOST}].",
+    },
+    {
+      id: "target",
+      short: Some('t'),
+      about: "Preferred target [default: prefs or \{DEFAULT_TARGET}].",
+    },
   ]
   let project_flags = [
-    ["init", "i", "Initialize in an existing directory instead of creating it."],
+    {
+      id: "init",
+      short: Some('i'),
+      about: "Initialize in an existing directory instead of creating it.",
+    },
   ]
-  let project_positionals = [["path", "", "Project directory path."]]
+  let project_positionals = [{ id: "path", about: "Project directory path." }]
   @argparse.Command(
-    "momoka",
+    CLI_NAME,
     version=VERSION,
     options=map_specs(project_options, option_arg),
     flags=map_specs(project_flags, flag_arg),
     positionals=map_specs(project_positionals, optional_position_arg),
-    subcommands=[preferences_command("cfg")],
+    subcommands=[preferences_command(CFG_COMMAND)],
     disable_help_subcommand=true,
   )
 }
@@ -161,21 +199,23 @@ fn matched_value(matches : @argparse.Matches, value_id : String) -> String? {
 ///|
 fn decode_project_request(
   matches : @argparse.Matches,
-) -> Result[CliRequest, String] {
-  let initialize_existing = matches.flags.get("init").unwrap_or(false)
+) -> CliRequest raise CliError {
+  let mode = if matches.flags.get("init").unwrap_or(false) {
+    Init
+  } else {
+    Create
+  }
   let path = match matched_value(matches, "path") {
     Some(path) => path
-    None => if initialize_existing { "." } else { return Err(usage_text()) }
+    None => if mode is Init { "." } else { raise CliError(usage_text()) }
   }
-  Ok(
-    Project({
-      path,
-      license: matched_value(matches, "license"),
-      repository_hosting: matched_value(matches, "host"),
-      preferred_target: matched_value(matches, "target"),
-      initialize_existing,
-    }),
-  )
+  Project({
+    path,
+    license: matched_value(matches, "license"),
+    repository_hosting: matched_value(matches, "host"),
+    preferred_target: matched_value(matches, "target"),
+    mode,
+  })
 }
 
 ///|
@@ -191,18 +231,16 @@ fn decode_preferences_request(matches : @argparse.Matches) -> CliRequest {
 fn decode_subcommand(
   name : String,
   submatches : @argparse.Matches,
-) -> Result[CliRequest, String] {
-  if name == "cfg" {
-    Ok(decode_preferences_request(submatches))
+) -> CliRequest raise CliError {
+  if name == CFG_COMMAND {
+    decode_preferences_request(submatches)
   } else {
-    Err("unsupported CLI subcommand: \{name}")
+    raise CliError("unsupported CLI subcommand: \{name}")
   }
 }
 
 ///|
-fn decode_cli_matches(
-  matches : @argparse.Matches,
-) -> Result[CliRequest, String] {
+fn decode_cli_matches(matches : @argparse.Matches) -> CliRequest raise CliError {
   match matches.subcommand {
     Some((name, submatches)) => decode_subcommand(name, submatches)
     None => decode_project_request(matches)
@@ -210,21 +248,36 @@ fn decode_cli_matches(
 }
 
 ///|
-fn has_help_flag(args : ArrayView[String]) -> Bool {
-  for arg in args {
-    if arg == "-h" || arg == "--help" {
-      return true
-    }
-  }
-  false
+fn is_top_level_help_request(args : ArrayView[String]) -> Bool {
+  args.length() == 1 && is_help_arg(args[0])
 }
 
 ///|
-fn parse_cli_args(args : ArrayView[String]) -> Result[CliRequest, String] {
-  guard args.length() != 0 else { return Ok(Help) }
-  guard !has_help_flag(args) else { return Ok(Help) }
+fn is_help_arg(arg : String) -> Bool {
+  arg == "-h" || arg == "--help"
+}
+
+///|
+fn help_request(args : ArrayView[String]) -> CliRequest? {
+  if args.length() == 0 {
+    return Some(Help(TopLevelHelp))
+  }
+  if is_top_level_help_request(args) {
+    return Some(Help(TopLevelHelp))
+  }
+  if args.length() == 2 && args[0] == CFG_COMMAND && is_help_arg(args[1]) {
+    return Some(Help(PreferencesHelp))
+  }
+  None
+}
+
+///|
+fn parse_cli_args(args : ArrayView[String]) -> CliRequest raise CliError {
+  if help_request(args) is Some(request) {
+    return request
+  }
   try @argparse.Command::parse(cli_command(), argv=args) catch {
-    err => Err("\{err}")
+    err => raise CliError("\{err}")
   } noraise {
     matches => decode_cli_matches(matches)
   }

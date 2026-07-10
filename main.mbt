@@ -1,33 +1,36 @@
 ///|
 async fn main {
-  match @env.args() {
-    [_, .. args] =>
-      match run(args) {
-        Ok(message) => println(message)
-        Err(err) => {
-          println(err)
-          @sys.exit(1)
-        }
-      }
-    [] => {
-      println(usage_text())
-      @sys.exit(0)
+  let args = match @env.args() {
+    [_, .. args] => args
+    [] => []
+  }
+  match run(args) {
+    Ok(message) => println(message)
+    Err(err) => {
+      @stdio.stderr..write(err).write("\n")
+      @sys.exit(1)
     }
   }
 }
 
 ///|
 async fn run(args : ArrayView[String]) -> Result[String, String] {
-  match parse_cli_args(args) {
-    Ok(request) => handle_cli_request(request)
-    Err(err) => Err(err)
+  try run_or_raise(args) catch {
+    CliError(message) => Err(message)
+  } noraise {
+    message => Ok(message)
   }
 }
 
 ///|
-async fn handle_cli_request(request : CliRequest) -> Result[String, String] {
+async fn run_or_raise(args : ArrayView[String]) -> String raise CliError {
+  handle_cli_request(parse_cli_args(args))
+}
+
+///|
+async fn handle_cli_request(request : CliRequest) -> String raise CliError {
   match request {
-    Help => Ok(usage_text())
+    Help(topic) => help_text(topic)
     Project(config) => run_project_request(config)
     Preferences(Configure) => configure_preferred_defaults()
     Preferences(Show) => show_preferred_defaults()
@@ -35,31 +38,20 @@ async fn handle_cli_request(request : CliRequest) -> Result[String, String] {
 }
 
 ///|
-async fn run_project_request(config : CliConfig) -> Result[String, String] {
-  match ensure_username() {
-    Ok(username) => {
-      let preferred = match home_dir() {
-        Some(home) =>
-          match load_preferred_config(preferred_file_path(home)) {
-            Ok(preferred) => preferred
-            Err(err) => return Err(err)
-          }
-        None => empty_preferred_config()
-      }
-      let result = if config.initialize_existing {
-        init_project(config, username, preferred)
-      } else {
-        create_project(config, username, preferred)
-      }
-      result.map(project_dir => {
-        let action = if config.initialize_existing {
-          "initialized"
-        } else {
-          "created and initialized"
-        }
-        "\{action} moon.mod, moon.pkg and .gitignore in \{project_dir}"
-      })
-    }
-    Err(err) => Err(err)
-  }
+async fn run_project_request(config : CliConfig) -> String raise CliError {
+  let target = validate_project_target(config)
+  let user = ensure_username_with_preferred()
+  let project_dir = write_project_to_target(
+    target,
+    config,
+    user.username,
+    user.preferred,
+  )
+  project_success_message(config.mode, project_dir)
+}
+
+///|
+fn project_success_message(mode : ProjectMode, project_dir : String) -> String {
+  let action = project_action_text(mode)
+  "\{action} moon.mod, moon.pkg and .gitignore in \{project_dir}"
 }
