@@ -66,9 +66,8 @@ fn parse_preferred_value(line : String, key : PreferredKey) -> String? {
 ///|
 fn parse_preferred_entry(line : String) -> PreferredEntry? {
   for key in [UsernameField, LicenseField, HostField, TargetField] {
-    if parse_preferred_value(line, key) is Some(value) {
-      return Some({ key, value })
-    }
+    guard parse_preferred_value(line, key) is Some(value) else { continue }
+    return Some({ key, value })
   }
   None
 }
@@ -115,12 +114,9 @@ fn parse_preferred_config(content : String) -> PreferredConfig {
   let mut preferred = empty_preferred_config()
   for raw_line in content.split("\n") {
     let line = raw_line.trim().to_owned()
-    if line.is_empty() {
-      continue
-    }
-    if parse_preferred_entry(line) is Some(entry) {
-      preferred = apply_preferred_entry(preferred, entry)
-    }
+    guard !line.is_empty() else { continue }
+    guard parse_preferred_entry(line) is Some(entry) else { continue }
+    preferred = apply_preferred_entry(preferred, entry)
   }
   preferred
 }
@@ -150,24 +146,21 @@ fn push_preferred_line(
 async fn load_preferred_config(
   preferred_file : String,
 ) -> PreferredConfig raise CliError {
-  match path_exists(preferred_file) {
-    false => empty_preferred_config()
-    true =>
-      try @fs.read_file(preferred_file) catch {
+  guard path_exists(preferred_file) else { empty_preferred_config() }
+  try @fs.read_file(preferred_file) catch {
+    err =>
+      raise CliError(
+        "failed to read preferences \{preferred_file}: \{@debug.to_repr(err)}",
+      )
+  } noraise {
+    content =>
+      try content.text() catch {
         err =>
           raise CliError(
-            "failed to read preferences \{preferred_file}: \{@debug.to_repr(err)}",
+            "failed to decode preferences \{preferred_file}: \{@debug.to_repr(err)}",
           )
       } noraise {
-        content =>
-          try content.text() catch {
-            err =>
-              raise CliError(
-                "failed to decode preferences \{preferred_file}: \{@debug.to_repr(err)}",
-              )
-          } noraise {
-            text => parse_preferred_config(text)
-          }
+        text => parse_preferred_config(text)
       }
   }
 }
@@ -185,26 +178,24 @@ async fn save_preferred_config(
 
 ///|
 async fn ensure_dir(path : String) -> Unit raise CliError {
-  match path_exists(path) {
-    true =>
-      try @fs.kind(path) catch {
-        err =>
-          raise CliError(
-            "failed to inspect directory \{path}: \{@debug.to_repr(err)}",
-          )
-      } noraise {
-        Directory => ()
-        _ => raise CliError("path exists but is not a directory: \{path}")
-      }
-    false =>
-      try @fs.mkdir(path) catch {
-        err =>
-          raise CliError(
-            "failed to create directory \{path}: \{@debug.to_repr(err)}",
-          )
-      } noraise {
-        _ => ()
-      }
+  guard !path_exists(path) else {
+    try @fs.kind(path) catch {
+      err =>
+        raise CliError(
+          "failed to inspect directory \{path}: \{@debug.to_repr(err)}",
+        )
+    } noraise {
+      Directory => ()
+      _ => raise CliError("path exists but is not a directory: \{path}")
+    }
+  }
+  try @fs.mkdir(path) catch {
+    err =>
+      raise CliError(
+        "failed to create directory \{path}: \{@debug.to_repr(err)}",
+      )
+  } noraise {
+    _ => ()
   }
 }
 

@@ -45,9 +45,8 @@ async fn write_new_string_file(
   path : String,
   content : String,
 ) -> Unit raise CliError {
-  match path_exists(path) {
-    true => raise CliError("file already exists: \{path}")
-    false => ()
+  guard !path_exists(path) else {
+    raise CliError("file already exists: \{path}")
   }
   try @fs.write_file(path, content, create_mode=CreateNew) catch {
     err =>

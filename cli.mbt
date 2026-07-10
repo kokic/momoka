@@ -259,26 +259,22 @@ fn is_help_arg(arg : String) -> Bool {
 
 ///|
 fn help_request(args : ArrayView[String]) -> CliRequest? {
-  if args.length() == 0 {
-    return Some(Help(TopLevelHelp))
-  }
-  if is_top_level_help_request(args) {
-    return Some(Help(TopLevelHelp))
-  }
-  if args.length() == 2 && args[0] == CFG_COMMAND && is_help_arg(args[1]) {
-    return Some(Help(PreferencesHelp))
+  guard args.length() != 0 else { Some(Help(TopLevelHelp)) }
+  guard !is_top_level_help_request(args) else { Some(Help(TopLevelHelp)) }
+  guard !(args.length() == 2 && args[0] == CFG_COMMAND && is_help_arg(args[1])) else {
+    Some(Help(PreferencesHelp))
   }
   None
 }
 
 ///|
 fn parse_cli_args(args : ArrayView[String]) -> CliRequest raise CliError {
-  if help_request(args) is Some(request) {
-    return request
+  guard help_request(args) is Some(request) else {
+    try @argparse.Command::parse(cli_command(), argv=args) catch {
+      err => raise CliError("\{err}")
+    } noraise {
+      matches => decode_cli_matches(matches)
+    }
   }
-  try @argparse.Command::parse(cli_command(), argv=args) catch {
-    err => raise CliError("\{err}")
-  } noraise {
-    matches => decode_cli_matches(matches)
-  }
+  request
 }
