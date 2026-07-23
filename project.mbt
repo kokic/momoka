@@ -16,6 +16,7 @@ priv struct ProjectFiles {
   moon_mod : String
   moon_pkg : String
   gitignore : String
+  gitattributes : String
 }
 
 ///|
@@ -93,6 +94,7 @@ fn render_project_files(
     ),
     moon_pkg: moon_pkg_content(),
     gitignore: gitignore_content(),
+    gitattributes: gitattributes_content(),
   }
 }
 
@@ -168,5 +170,6 @@ fn ProjectFiles::to_entries(self : ProjectFiles) -> Array[ProjectFile] {
     { filename: "moon.mod", content: self.moon_mod },
     { filename: "moon.pkg", content: self.moon_pkg },
     { filename: ".gitignore", content: self.gitignore },
+    { filename: ".gitattributes", content: self.gitattributes },
   ]
 }

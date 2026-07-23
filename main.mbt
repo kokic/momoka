@@ -48,5 +48,11 @@ fn ProjectMode::success_message(
   project_dir : String,
 ) -> String {
   let action = self.action_text()
-  "\{action} moon.mod, moon.pkg and .gitignore in \{project_dir}"
+  let files = ["moon.mod", "moon.pkg", ".gitignore", ".gitattributes"]
+    .map(emph)
+    .join(", ")
+  "\{action} \{files} in \{emph(project_dir)}"
 }
+
+///|
+pub let emph : (String) -> String = s => @chalk.chalk().color(Cyan).render(s)

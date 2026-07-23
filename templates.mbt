@@ -61,7 +61,10 @@ test "moon_mod_content uses suffixless moon.mod format" {
 
 ///|
 fn moon_pkg_content() -> String {
-  "import {}"
+  (
+    #|import {
+    #|}
+  )
 }
 
 ///|
@@ -75,4 +78,9 @@ fn gitignore_content() -> String {
     #|.local/
     #|*.mbti
   )
+}
+
+///|
+fn gitattributes_content() -> String {
+  "* text=auto eol=lf"
 }
