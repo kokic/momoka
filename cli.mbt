@@ -20,15 +20,23 @@ const CFG_COMMAND : String = "cfg"
 ///|
 fn usage_text() -> String {
   let momoka = @chalk.chalk().color(YellowBright).render("Momoka")
+  
   let version = @chalk.chalk().modifier(Bold).render("\{VERSION}")
+  
   let description = @chalk.chalk()
     .modifier(Bold)
     .render("Create a minimal MoonBit module")
+  
+  let banner = @chalk.chalk()
+    .color(YellowBright)
+    .modifier(Bold)
+    .render(BANNER_TEXT)
+
   let intro = "\{momoka} \{version} - \{description}"
   (
     $|\{intro}
     $|\{cli_command().render_help()}
-    $|\{BANNER_TEXT}
+    $|\{banner}
   )
 }
 
