@@ -109,11 +109,7 @@ fn project_settings(
       preferred.license,
       DEFAULT_LICENSE,
     ),
-    host: configured_value(
-      overrides.host,
-      preferred.host,
-      DEFAULT_HOST,
-    ),
+    host: configured_value(overrides.host, preferred.host, DEFAULT_HOST),
     preferred_target: configured_value(
       overrides.preferred_target,
       preferred.preferred_target,

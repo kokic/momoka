@@ -31,22 +31,13 @@ async fn PreferredConfig::interactive_prompt(
     self.license,
     DEFAULT_LICENSE,
   )
-  let host = prompt_preferred_field(
-    "default host",
-    self.host,
-    DEFAULT_HOST,
-  )
+  let host = prompt_preferred_field("default host", self.host, DEFAULT_HOST)
   let preferred_target = prompt_preferred_field(
     "default target",
     self.preferred_target,
     DEFAULT_TARGET,
   )
-  {
-    username: self.username,
-    license,
-    host,
-    preferred_target,
-  }
+  { username: self.username, license, host, preferred_target }
 }
 
 ///|
@@ -75,10 +66,7 @@ async fn show_preferred_defaults() -> String raise CliError {
   let preferred_file = preferred_file_path(home)
   let preferred = load_preferred_config(preferred_file)
   let license = preferred_display_value(preferred.license, DEFAULT_LICENSE)
-  let host = preferred_display_value(
-    preferred.host,
-    DEFAULT_HOST,
-  )
+  let host = preferred_display_value(preferred.host, DEFAULT_HOST)
   let preferred_target = preferred_display_value(
     preferred.preferred_target,
     DEFAULT_TARGET,

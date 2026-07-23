@@ -1,6 +1,6 @@
 name = "kokic/momoka"
 
-version = "0.4.2"
+version = "0.4.3"
 
 import {
   "moonbitlang/x@0.4.45",

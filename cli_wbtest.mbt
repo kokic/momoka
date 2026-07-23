@@ -185,11 +185,7 @@ async test "create_project creates missing project directory" {
     let project_path = @path.Path::join(base_path, "demo").to_string()
     let config : CliConfig = {
       location: { path: project_path, mode: Create },
-      overrides: {
-        license: None,
-        host: None,
-        preferred_target: None,
-      },
+      overrides: { license: None, host: None, preferred_target: None },
     }
     let target = validate_project_target(config)
     let project_dir = bootstrap_project(
@@ -241,11 +237,7 @@ async test "run_project_request validates target before user preferences" {
     })
     let config : CliConfig = {
       location: { path: base_path, mode: Create },
-      overrides: {
-        license: None,
-        host: None,
-        preferred_target: None,
-      },
+      overrides: { license: None, host: None, preferred_target: None },
     }
     try run_project_request(config) catch {
       err => expect_cli_error_message(err, "path already exists")
@@ -270,20 +262,11 @@ async test "init_project does not overwrite existing project files" {
     @fs.write_file(moon_mod_path, "keep", create_mode=CreateOrTruncate)
     let config : CliConfig = {
       location: { path: base_path, mode: Init },
-      overrides: {
-        license: None,
-        host: None,
-        preferred_target: None,
-      },
+      overrides: { license: None, host: None, preferred_target: None },
     }
     let target = validate_project_target(config)
     try
-      bootstrap_project(
-        target,
-        config,
-        "tester",
-        PreferredConfig::empty(),
-      )
+      bootstrap_project(target, config, "tester", PreferredConfig::empty())
     catch {
       err => expect_cli_error_message(err, "file already exists")
     } noraise {

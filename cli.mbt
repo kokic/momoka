@@ -90,7 +90,9 @@ fn NamedArgSpec::to_flag(self : NamedArgSpec) -> @argparse.FlagArg {
 }
 
 ///|
-fn PositionArgSpec::to_positional(self : PositionArgSpec) -> @argparse.PositionArg {
+fn PositionArgSpec::to_positional(
+  self : PositionArgSpec,
+) -> @argparse.PositionArg {
   @argparse.PositionArg(
     self.id,
     about=self.about,
