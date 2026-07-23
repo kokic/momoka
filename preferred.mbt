@@ -12,7 +12,7 @@ fn preferred_file_path(home : String) -> String {
 priv struct PreferredConfig {
   username : String?
   license : String?
-  repository_hosting : String?
+  host : String?
   preferred_target : String?
 }
 
@@ -31,18 +31,13 @@ priv struct PreferredEntry {
 }
 
 ///|
-fn empty_preferred_config() -> PreferredConfig {
-  {
-    username: None,
-    license: None,
-    repository_hosting: None,
-    preferred_target: None,
-  }
+fn PreferredConfig::empty() -> PreferredConfig {
+  { username: None, license: None, host: None, preferred_target: None }
 }
 
 ///|
-fn preferred_key_name(key : PreferredKey) -> String {
-  match key {
+fn PreferredKey::name(self : PreferredKey) -> String {
+  match self {
     UsernameField => "username"
     LicenseField => "license"
     HostField => "host"
@@ -52,15 +47,12 @@ fn preferred_key_name(key : PreferredKey) -> String {
 
 ///|
 fn parse_preferred_value(line : String, key : PreferredKey) -> String? {
-  let key = preferred_key_name(key)
-  let prefix = "\{key} "
+  let key_name = key.name()
+  let prefix = "\{key_name} "
   guard line.has_prefix(prefix) else { None }
   let value = line.view(start_offset=prefix.length()).trim().to_owned()
-  if value.is_empty() {
-    None
-  } else {
-    Some(value)
-  }
+  guard !value.is_empty() else { None }
+  Some(value)
 }
 
 ///|
@@ -73,61 +65,37 @@ fn parse_preferred_entry(line : String) -> PreferredEntry? {
 }
 
 ///|
-fn apply_preferred_entry(
-  preferred : PreferredConfig,
+fn PreferredConfig::apply_entry(
+  self : PreferredConfig,
   entry : PreferredEntry,
 ) -> PreferredConfig {
   match entry.key {
-    UsernameField =>
-      {
-        username: Some(entry.value),
-        license: preferred.license,
-        repository_hosting: preferred.repository_hosting,
-        preferred_target: preferred.preferred_target,
-      }
-    LicenseField =>
-      {
-        username: preferred.username,
-        license: Some(entry.value),
-        repository_hosting: preferred.repository_hosting,
-        preferred_target: preferred.preferred_target,
-      }
-    HostField =>
-      {
-        username: preferred.username,
-        license: preferred.license,
-        repository_hosting: Some(entry.value),
-        preferred_target: preferred.preferred_target,
-      }
-    TargetField =>
-      {
-        username: preferred.username,
-        license: preferred.license,
-        repository_hosting: preferred.repository_hosting,
-        preferred_target: Some(entry.value),
-      }
+    UsernameField => { ..self, username: Some(entry.value) }
+    LicenseField => { ..self, license: Some(entry.value) }
+    HostField => { ..self, host: Some(entry.value) }
+    TargetField => { ..self, preferred_target: Some(entry.value) }
   }
 }
 
 ///|
-fn parse_preferred_config(content : String) -> PreferredConfig {
-  let mut preferred = empty_preferred_config()
+fn PreferredConfig::parse(content : String) -> PreferredConfig {
+  let mut preferred = PreferredConfig::empty()
   for raw_line in content.split("\n") {
     let line = raw_line.trim().to_owned()
     guard !line.is_empty() else { continue }
     guard parse_preferred_entry(line) is Some(entry) else { continue }
-    preferred = apply_preferred_entry(preferred, entry)
+    preferred = preferred.apply_entry(entry)
   }
   preferred
 }
 
 ///|
-fn preferred_config_to_content(preferred : PreferredConfig) -> String {
+fn PreferredConfig::to_content(self : PreferredConfig) -> String {
   let lines : Array[String] = []
-  push_preferred_line(lines, UsernameField, preferred.username)
-  push_preferred_line(lines, LicenseField, preferred.license)
-  push_preferred_line(lines, HostField, preferred.repository_hosting)
-  push_preferred_line(lines, TargetField, preferred.preferred_target)
+  push_preferred_line(lines, UsernameField, self.username)
+  push_preferred_line(lines, LicenseField, self.license)
+  push_preferred_line(lines, HostField, self.host)
+  push_preferred_line(lines, TargetField, self.preferred_target)
   lines.join("\n")
 }
 
@@ -138,7 +106,7 @@ fn push_preferred_line(
   value : String?,
 ) -> Unit {
   if value is Some(value) {
-    lines.push("\{preferred_key_name(key)} \{value}")
+    lines.push("\{key.name()} \{value}")
   }
 }
 
@@ -146,7 +114,7 @@ fn push_preferred_line(
 async fn load_preferred_config(
   preferred_file : String,
 ) -> PreferredConfig raise CliError {
-  guard path_exists(preferred_file) else { empty_preferred_config() }
+  guard path_exists(preferred_file) else { PreferredConfig::empty() }
   try @fs.read_file(preferred_file) catch {
     err =>
       raise CliError(
@@ -160,7 +128,7 @@ async fn load_preferred_config(
             "failed to decode preferences \{preferred_file}: \{@debug.to_repr(err)}",
           )
       } noraise {
-        text => parse_preferred_config(text)
+        text => PreferredConfig::parse(text)
       }
   }
 }
@@ -170,41 +138,5 @@ async fn save_preferred_config(
   preferred_file : String,
   preferred : PreferredConfig,
 ) -> Unit raise CliError {
-  write_or_truncate_string_file(
-    preferred_file,
-    preferred_config_to_content(preferred),
-  )
-}
-
-///|
-async fn ensure_dir(path : String) -> Unit raise CliError {
-  guard !path_exists(path) else {
-    try @fs.kind(path) catch {
-      err =>
-        raise CliError(
-          "failed to inspect directory \{path}: \{@debug.to_repr(err)}",
-        )
-    } noraise {
-      Directory => ()
-      _ => raise CliError("path exists but is not a directory: \{path}")
-    }
-  }
-  try @fs.mkdir(path) catch {
-    err =>
-      raise CliError(
-        "failed to create directory \{path}: \{@debug.to_repr(err)}",
-      )
-  } noraise {
-    _ => ()
-  }
-}
-
-///|
-fn module_name_from_project_dir(project_dir : String) -> String {
-  let module_name = @path.Path::basename(project_dir).to_owned()
-  if module_name.is_empty() {
-    "moon-new-mini"
-  } else {
-    module_name
-  }
+  write_or_truncate_string_file(preferred_file, preferred.to_content())
 }

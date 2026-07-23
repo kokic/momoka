@@ -7,7 +7,7 @@ priv struct ProjectTarget {
 ///|
 priv struct ProjectSettings {
   license : String
-  repository_hosting : String
+  host : String
   preferred_target : String
 }
 
@@ -28,8 +28,8 @@ priv struct ProjectFile {
 async fn validate_project_target(
   config : CliConfig,
 ) -> ProjectTarget raise CliError {
-  let project_dir = absolute_path(config.path)
-  let target : ProjectTarget = { project_dir, mode: config.mode }
+  let project_dir = absolute_path(config.location.path)
+  let target : ProjectTarget = { project_dir, mode: config.location.mode }
   match target.mode {
     Create => ensure_new_project_target(target.project_dir)
     Init => ensure_existing_dir(target.project_dir)
@@ -47,23 +47,14 @@ async fn ensure_new_project_target(path : String) -> Unit raise CliError {
 }
 
 ///|
-async fn ensure_existing_dir(path : String) -> Unit raise CliError {
-  guard path_exists(path) else {
-    raise CliError("directory does not exist: \{path}")
-  }
-  try @fs.kind(path) catch {
-    err =>
-      raise CliError(
-        "failed to inspect directory \{path}: \{@debug.to_repr(err)}",
-      )
-  } noraise {
-    Directory => ()
-    _ => raise CliError("path exists but is not a directory: \{path}")
-  }
+fn module_name_from_project_dir(project_dir : String) -> String {
+  let module_name = @path.Path::basename(project_dir).to_owned()
+  guard !module_name.is_empty() else { "moon-new-mini" }
+  module_name
 }
 
 ///|
-async fn write_project_to_target(
+async fn bootstrap_project(
   target : ProjectTarget,
   config : CliConfig,
   username : String,
@@ -75,7 +66,7 @@ async fn write_project_to_target(
   }
   let files = render_project_files(
     target.project_dir,
-    config,
+    config.overrides,
     username,
     preferred,
   )
@@ -86,43 +77,43 @@ async fn write_project_to_target(
 ///|
 fn render_project_files(
   project_dir : String,
-  config : CliConfig,
+  overrides : ProjectOverrides,
   username : String,
   preferred : PreferredConfig,
 ) -> ProjectFiles {
-  let settings = project_settings(config, preferred)
+  let settings = project_settings(overrides, preferred)
   let module_name = module_name_from_project_dir(project_dir)
   {
-    moon_mod: file_content_moon_mod(
+    moon_mod: moon_mod_content(
       username~,
       module_name~,
       settings.license,
-      settings.repository_hosting,
+      settings.host,
       settings.preferred_target,
     ),
-    moon_pkg: file_content_moon_pkg(),
-    gitignore: file_content_gitignore(),
+    moon_pkg: moon_pkg_content(),
+    gitignore: gitignore_content(),
   }
 }
 
 ///|
 fn project_settings(
-  config : CliConfig,
+  overrides : ProjectOverrides,
   preferred : PreferredConfig,
 ) -> ProjectSettings {
   {
     license: configured_value(
-      config.license,
+      overrides.license,
       preferred.license,
       DEFAULT_LICENSE,
     ),
-    repository_hosting: configured_value(
-      config.repository_hosting,
-      preferred.repository_hosting,
+    host: configured_value(
+      overrides.host,
+      preferred.host,
       DEFAULT_HOST,
     ),
     preferred_target: configured_value(
-      config.preferred_target,
+      overrides.preferred_target,
       preferred.preferred_target,
       DEFAULT_TARGET,
     ),
@@ -135,7 +126,7 @@ fn configured_value(
   preferred : String?,
   builtin : String,
 ) -> String {
-  Option::unwrap_or(explicit, Option::unwrap_or(preferred, builtin))
+  explicit.unwrap_or(preferred.unwrap_or(builtin))
 }
 
 ///|
@@ -143,7 +134,7 @@ async fn write_project_files(
   project_dir : String,
   files : ProjectFiles,
 ) -> Unit raise CliError {
-  let entries = project_file_entries(files)
+  let entries = files.to_entries()
   ensure_project_files_absent(project_dir, entries)
   for file in entries {
     write_new_string_file(
@@ -172,10 +163,10 @@ fn project_file_path(project_dir : String, filename : String) -> String {
 }
 
 ///|
-fn project_file_entries(files : ProjectFiles) -> Array[ProjectFile] {
+fn ProjectFiles::to_entries(self : ProjectFiles) -> Array[ProjectFile] {
   [
-    { filename: "moon.mod", content: files.moon_mod },
-    { filename: "moon.pkg", content: files.moon_pkg },
-    { filename: ".gitignore", content: files.gitignore },
+    { filename: "moon.mod", content: self.moon_mod },
+    { filename: "moon.pkg", content: self.moon_pkg },
+    { filename: ".gitignore", content: self.gitignore },
   ]
 }

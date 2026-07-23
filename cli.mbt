@@ -18,44 +18,22 @@ const CLI_NAME : String = "momoka"
 const CFG_COMMAND : String = "cfg"
 
 ///|
-fn usage_text() -> String {
-  let momoka = @chalk.chalk().color(YellowBright).render("Momoka")
-  
-  let version = @chalk.chalk().modifier(Bold).render("\{VERSION}")
-  
-  let description = @chalk.chalk()
-    .modifier(Bold)
-    .render("Create a minimal MoonBit module")
-  
-  let banner = @chalk.chalk()
-    .color(YellowBright)
-    .modifier(Bold)
-    .render(BANNER_TEXT)
-
-  let intro = "\{momoka} \{version} - \{description}"
-  (
-    $|\{intro}
-    $|\{cli_command().render_help()}
-    $|\{banner}
-  )
+priv struct ProjectLocation {
+  path : String
+  mode : ProjectMode
 }
 
 ///|
-const BANNER_TEXT : String =
-  #|  __  __                       _         
-  #| |  \/  | ___  _ __ ___   ___ | | ____ _ 
-  #| | |\/| |/ _ \| '_ ` _ \ / _ \| |/ / _` |
-  #| | |  | | (_) | | | | | | (_) |   < (_| |
-  #| |_|  |_|\___/|_| |_| |_|\___/|_|\_\__,_|
-  #|
+priv struct ProjectOverrides {
+  license : String?
+  host : String?
+  preferred_target : String?
+}
 
 ///|
 priv struct CliConfig {
-  path : String
-  license : String?
-  repository_hosting : String?
-  preferred_target : String?
-  mode : ProjectMode
+  location : ProjectLocation
+  overrides : ProjectOverrides
 }
 
 ///|
@@ -97,32 +75,27 @@ priv struct PositionArgSpec {
 }
 
 ///|
-fn option_arg(spec : NamedArgSpec) -> @argparse.OptionArg {
+fn NamedArgSpec::to_option(self : NamedArgSpec) -> @argparse.OptionArg {
   @argparse.OptionArg(
-    spec.id,
-    short?=spec.short,
-    long=spec.id,
-    about=spec.about,
+    self.id,
+    short?=self.short,
+    long=self.id,
+    about=self.about,
   )
 }
 
 ///|
-fn flag_arg(spec : NamedArgSpec) -> @argparse.FlagArg {
-  @argparse.FlagArg(spec.id, short?=spec.short, long=spec.id, about=spec.about)
+fn NamedArgSpec::to_flag(self : NamedArgSpec) -> @argparse.FlagArg {
+  @argparse.FlagArg(self.id, short?=self.short, long=self.id, about=self.about)
 }
 
 ///|
-fn optional_position_arg(spec : PositionArgSpec) -> @argparse.PositionArg {
+fn PositionArgSpec::to_positional(self : PositionArgSpec) -> @argparse.PositionArg {
   @argparse.PositionArg(
-    spec.id,
-    about=spec.about,
+    self.id,
+    about=self.about,
     num_args=@argparse.ValueRange(lower=0, upper=1),
   )
-}
-
-///|
-fn[T, U] map_specs(specs : ArrayView[T], mapper : (T) -> U) -> Array[U] {
-  specs.map(spec => mapper(spec))
 }
 
 ///|
@@ -138,27 +111,6 @@ fn preferences_command(
     ],
     hidden~,
   )
-}
-
-///|
-fn preferences_help_text() -> String {
-  preferences_command("\{CLI_NAME} \{CFG_COMMAND}").render_help()
-}
-
-///|
-fn help_text(topic : HelpTopic) -> String {
-  match topic {
-    TopLevelHelp => usage_text()
-    PreferencesHelp => preferences_help_text()
-  }
-}
-
-///|
-fn project_action_text(mode : ProjectMode) -> String {
-  match mode {
-    Create => "created and initialized"
-    Init => "initialized"
-  }
 }
 
 ///|
@@ -191,9 +143,9 @@ fn cli_command() -> @argparse.Command {
   @argparse.Command(
     CLI_NAME,
     version=VERSION,
-    options=map_specs(project_options, option_arg),
-    flags=map_specs(project_flags, flag_arg),
-    positionals=map_specs(project_positionals, optional_position_arg),
+    options=project_options.map(NamedArgSpec::to_option),
+    flags=project_flags.map(NamedArgSpec::to_flag),
+    positionals=project_positionals.map(PositionArgSpec::to_positional),
     subcommands=[preferences_command(CFG_COMMAND)],
     disable_help_subcommand=true,
   )
@@ -218,11 +170,12 @@ fn decode_project_request(
     None => if mode is Init { "." } else { raise CliError(usage_text()) }
   }
   Project({
-    path,
-    license: matched_value(matches, "license"),
-    repository_hosting: matched_value(matches, "host"),
-    preferred_target: matched_value(matches, "target"),
-    mode,
+    location: { path, mode },
+    overrides: {
+      license: matched_value(matches, "license"),
+      host: matched_value(matches, "host"),
+      preferred_target: matched_value(matches, "target"),
+    },
   })
 }
 
@@ -237,14 +190,10 @@ fn decode_preferences_request(matches : @argparse.Matches) -> CliRequest {
 
 ///|
 fn decode_subcommand(
-  name : String,
+  _name : String,
   submatches : @argparse.Matches,
-) -> CliRequest raise CliError {
-  if name == CFG_COMMAND {
-    decode_preferences_request(submatches)
-  } else {
-    raise CliError("unsupported CLI subcommand: \{name}")
-  }
+) -> CliRequest {
+  decode_preferences_request(submatches)
 }
 
 ///|
@@ -256,23 +205,18 @@ fn decode_cli_matches(matches : @argparse.Matches) -> CliRequest raise CliError 
 }
 
 ///|
-fn is_top_level_help_request(args : ArrayView[String]) -> Bool {
-  args.length() == 1 && is_help_arg(args[0])
-}
-
-///|
 fn is_help_arg(arg : String) -> Bool {
   arg == "-h" || arg == "--help"
 }
 
 ///|
 fn help_request(args : ArrayView[String]) -> CliRequest? {
-  guard args.length() != 0 else { Some(Help(TopLevelHelp)) }
-  guard !is_top_level_help_request(args) else { Some(Help(TopLevelHelp)) }
-  guard !(args.length() == 2 && args[0] == CFG_COMMAND && is_help_arg(args[1])) else {
-    Some(Help(PreferencesHelp))
+  match args {
+    [] => Some(Help(TopLevelHelp))
+    [arg] if is_help_arg(arg) => Some(Help(TopLevelHelp))
+    ["cfg", arg] if is_help_arg(arg) => Some(Help(PreferencesHelp))
+    _ => None
   }
-  None
 }
 
 ///|

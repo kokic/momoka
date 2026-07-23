@@ -1,9 +1,9 @@
 ///|
-fn file_content_moon_mod(
+fn moon_mod_content(
   username~ : String,
   module_name~ : String,
   license : String,
-  repository_hosting : String,
+  host : String,
   preferred_target : String,
 ) -> String {
   (
@@ -15,7 +15,7 @@ fn file_content_moon_mod(
     $|
     $|readme = "README.md"
     $|
-    $|repository = "https://\{repository_hosting}/\{username}/\{module_name}"
+    $|repository = "https://\{host}/\{username}/\{module_name}"
     $|
     $|license = "\{license}"
     $|
@@ -28,9 +28,9 @@ fn file_content_moon_mod(
 }
 
 ///|
-test "file_content_moon_mod uses suffixless moon.mod format" {
-  assert_eq(
-    file_content_moon_mod(
+test "moon_mod_content uses suffixless moon.mod format" {
+  @test.assert_eq(
+    moon_mod_content(
       username="kokic",
       module_name="demo",
       "MIT",
@@ -60,12 +60,12 @@ test "file_content_moon_mod uses suffixless moon.mod format" {
 }
 
 ///|
-fn file_content_moon_pkg() -> String {
+fn moon_pkg_content() -> String {
   "import {}"
 }
 
 ///|
-fn file_content_gitignore() -> String {
+fn gitignore_content() -> String {
   (
     #|.DS_Store
     #|_build/

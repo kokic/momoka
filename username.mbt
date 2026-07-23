@@ -1,4 +1,7 @@
 ///|
+const MAX_USERNAME_RETRIES : Int = 5
+
+///|
 async fn prompt_username(remaining_retry : Int) -> String raise CliError {
   guard remaining_retry > 0 else {
     raise CliError("failed to read username from stdin")
@@ -27,19 +30,15 @@ async fn ensure_username_with_preferred() -> UserPreferences raise CliError {
   let preferred_dir = preferred_dir_path(home)
   let preferred_file = preferred_file_path(home)
   let preferred = load_preferred_config(preferred_file)
-  match preferred.username {
-    Some(username) => UserPreferences::{ username, preferred }
-    None => {
-      ensure_dir(preferred_dir)
-      let username = prompt_username(5)
-      let updated_preferred : PreferredConfig = {
-        username: Some(username),
-        license: preferred.license,
-        repository_hosting: preferred.repository_hosting,
-        preferred_target: preferred.preferred_target,
-      }
-      save_preferred_config(preferred_file, updated_preferred)
-      { username, preferred: updated_preferred }
+  guard preferred.username is Some(username) else {
+    ensure_dir(preferred_dir)
+    let prompted_username = prompt_username(MAX_USERNAME_RETRIES)
+    let updated_preferred : PreferredConfig = {
+      ..preferred,
+      username: Some(prompted_username),
     }
+    save_preferred_config(preferred_file, updated_preferred)
+    { username: prompted_username, preferred: updated_preferred }
   }
+  UserPreferences::{ username, preferred }
 }

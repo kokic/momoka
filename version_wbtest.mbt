@@ -2,11 +2,9 @@
 async test {
   let moon_mod = @fs.read_file("./moon.mod").text()
   let version_line = "version = \"\{VERSION}\""
-  let mut found = false
   for raw_line in moon_mod.split("\n") {
-    if raw_line.trim().to_owned() == version_line {
-      found = true
-    }
+    guard raw_line.trim().to_owned() == version_line else { continue }
+    return
   }
-  assert_eq(found, true)
+  fail("version line not found in moon.mod")
 }

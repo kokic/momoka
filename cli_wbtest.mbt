@@ -9,11 +9,11 @@ fn expect_project_request(args : ArrayView[String]) -> CliConfig raise CliError 
 ///|
 test "parse_cli_args defaults" {
   let config = expect_project_request(["demo"])
-  assert_eq(config.path, "demo")
-  guard config.mode is Create else { fail("expected create mode") }
-  @test.assert_eq(config.license, None)
-  @test.assert_eq(config.repository_hosting, None)
-  @test.assert_eq(config.preferred_target, None)
+  @test.assert_eq(config.location.path, "demo")
+  guard config.location.mode is Create else { fail("expected create mode") }
+  @test.assert_eq(config.overrides.license, None)
+  @test.assert_eq(config.overrides.host, None)
+  @test.assert_eq(config.overrides.preferred_target, None)
 }
 
 ///|
@@ -21,32 +21,32 @@ test "parse_cli_args optional flags" {
   let config = expect_project_request([
     "demo", "-l", "MIT", "--host", "gitlab.com", "-t", "js",
   ])
-  assert_eq(config.path, "demo")
-  guard config.mode is Create else { fail("expected create mode") }
-  @test.assert_eq(config.license, Some("MIT"))
-  @test.assert_eq(config.repository_hosting, Some("gitlab.com"))
-  @test.assert_eq(config.preferred_target, Some("js"))
+  @test.assert_eq(config.location.path, "demo")
+  guard config.location.mode is Create else { fail("expected create mode") }
+  @test.assert_eq(config.overrides.license, Some("MIT"))
+  @test.assert_eq(config.overrides.host, Some("gitlab.com"))
+  @test.assert_eq(config.overrides.preferred_target, Some("js"))
 }
 
 ///|
 test "parse_cli_args init flag long" {
   let config = expect_project_request(["--init", "demo"])
-  assert_eq(config.path, "demo")
-  guard config.mode is Init else { fail("expected init mode") }
+  @test.assert_eq(config.location.path, "demo")
+  guard config.location.mode is Init else { fail("expected init mode") }
 }
 
 ///|
 test "parse_cli_args init flag short" {
   let config = expect_project_request(["demo", "-i"])
-  assert_eq(config.path, "demo")
-  guard config.mode is Init else { fail("expected init mode") }
+  @test.assert_eq(config.location.path, "demo")
+  guard config.location.mode is Init else { fail("expected init mode") }
 }
 
 ///|
 test "parse_cli_args init without path uses current dir" {
   let config = expect_project_request(["--init"])
-  assert_eq(config.path, ".")
-  guard config.mode is Init else { fail("expected init mode") }
+  @test.assert_eq(config.location.path, ".")
+  guard config.location.mode is Init else { fail("expected init mode") }
 }
 
 ///|
@@ -63,7 +63,7 @@ test "parse_cli_args help is success" {
   guard parse_cli_args(["--help"]) is Help(TopLevelHelp) else {
     fail("expected help request")
   }
-  let text = help_text(TopLevelHelp)
+  let text = TopLevelHelp.text()
   guard text.contains("Usage: momoka") else {
     fail("expected top-level help text")
   }
@@ -74,7 +74,7 @@ test "parse_cli_args preferences help is scoped to subcommand" {
   guard parse_cli_args(["cfg", "--help"]) is Help(PreferencesHelp) else {
     fail("expected preferences help request")
   }
-  let text = help_text(PreferencesHelp)
+  let text = PreferencesHelp.text()
   guard text.contains("Usage: momoka cfg") else {
     fail("expected preferences help text")
   }
@@ -98,8 +98,8 @@ test "parse_cli_args preferences show" {
 }
 
 ///|
-test "parse_preferred_config key-values" {
-  let preferred = parse_preferred_config(
+test "PreferredConfig::parse key-values" {
+  let preferred = PreferredConfig::parse(
     (
       #|username kokic
       #|license MIT
@@ -109,21 +109,21 @@ test "parse_preferred_config key-values" {
   )
   @test.assert_eq(preferred.username, Some("kokic"))
   @test.assert_eq(preferred.license, Some("MIT"))
-  @test.assert_eq(preferred.repository_hosting, Some("gitlab.com"))
+  @test.assert_eq(preferred.host, Some("gitlab.com"))
   @test.assert_eq(preferred.preferred_target, Some("js"))
 }
 
 ///|
-test "parse_preferred_config username compatibility" {
+test "PreferredConfig::parse username compatibility" {
   @test.assert_eq(
-    parse_preferred_config("username kokic").username,
+    PreferredConfig::parse("username kokic").username,
     Some("kokic"),
   )
   @test.assert_eq(
-    parse_preferred_config("username   mooner  ").username,
+    PreferredConfig::parse("username   mooner  ").username,
     Some("mooner"),
   )
-  @test.assert_eq(parse_preferred_config("user kokic").username, None)
+  @test.assert_eq(PreferredConfig::parse("user kokic").username, None)
 }
 
 ///|
@@ -131,11 +131,11 @@ test "preferred_config_to_content" {
   let preferred : PreferredConfig = {
     username: Some("kokic"),
     license: Some("MIT"),
-    repository_hosting: Some("gitlab.com"),
+    host: Some("gitlab.com"),
     preferred_target: Some("js"),
   }
-  assert_eq(
-    preferred_config_to_content(preferred),
+  @test.assert_eq(
+    preferred.to_content(),
     (
       #|username kokic
       #|license MIT
@@ -157,10 +157,7 @@ async fn expect_directory(path : String) -> Unit {
 
 ///|
 async fn expect_existing_path(path : String) -> Unit {
-  match path_exists(path) {
-    true => ()
-    false => fail("expected path to exist: \{path}")
-  }
+  guard path_exists(path) else { fail("expected path to exist: \{path}") }
 }
 
 ///|
@@ -187,18 +184,19 @@ async test "create_project creates missing project directory" {
     })
     let project_path = @path.Path::join(base_path, "demo").to_string()
     let config : CliConfig = {
-      path: project_path,
-      license: None,
-      repository_hosting: None,
-      preferred_target: None,
-      mode: Create,
+      location: { path: project_path, mode: Create },
+      overrides: {
+        license: None,
+        host: None,
+        preferred_target: None,
+      },
     }
     let target = validate_project_target(config)
-    let project_dir = write_project_to_target(
+    let project_dir = bootstrap_project(
       target,
       config,
       "tester",
-      empty_preferred_config(),
+      PreferredConfig::empty(),
     )
     expect_directory(project_dir)
     expect_existing_path(@path.Path::join(project_dir, "moon.mod").to_string())
@@ -242,11 +240,12 @@ async test "run_project_request validates target before user preferences" {
       }
     })
     let config : CliConfig = {
-      path: base_path,
-      license: None,
-      repository_hosting: None,
-      preferred_target: None,
-      mode: Create,
+      location: { path: base_path, mode: Create },
+      overrides: {
+        license: None,
+        host: None,
+        preferred_target: None,
+      },
     }
     try run_project_request(config) catch {
       err => expect_cli_error_message(err, "path already exists")
@@ -270,25 +269,26 @@ async test "init_project does not overwrite existing project files" {
     let moon_mod_path = @path.Path::join(base_path, "moon.mod").to_string()
     @fs.write_file(moon_mod_path, "keep", create_mode=CreateOrTruncate)
     let config : CliConfig = {
-      path: base_path,
-      license: None,
-      repository_hosting: None,
-      preferred_target: None,
-      mode: Init,
+      location: { path: base_path, mode: Init },
+      overrides: {
+        license: None,
+        host: None,
+        preferred_target: None,
+      },
     }
     let target = validate_project_target(config)
     try
-      write_project_to_target(
+      bootstrap_project(
         target,
         config,
         "tester",
-        empty_preferred_config(),
+        PreferredConfig::empty(),
       )
     catch {
       err => expect_cli_error_message(err, "file already exists")
     } noraise {
       _ => fail("expected existing project file to be rejected")
     }
-    assert_eq(@fs.read_file(moon_mod_path).text(), "keep")
+    @test.assert_eq(@fs.read_file(moon_mod_path).text(), "keep")
   }
 }

@@ -79,3 +79,37 @@ fn home_dir() -> String? {
   }
   Some(path)
 }
+
+///|
+async fn verify_is_directory(path : String) -> Unit raise CliError {
+  try @fs.kind(path) catch {
+    err =>
+      raise CliError(
+        "failed to inspect directory \{path}: \{@debug.to_repr(err)}",
+      )
+  } noraise {
+    Directory => ()
+    _ => raise CliError("path exists but is not a directory: \{path}")
+  }
+}
+
+///|
+async fn ensure_dir(path : String) -> Unit raise CliError {
+  guard !path_exists(path) else { verify_is_directory(path) }
+  try @fs.mkdir(path) catch {
+    err =>
+      raise CliError(
+        "failed to create directory \{path}: \{@debug.to_repr(err)}",
+      )
+  } noraise {
+    _ => ()
+  }
+}
+
+///|
+async fn ensure_existing_dir(path : String) -> Unit raise CliError {
+  guard path_exists(path) else {
+    raise CliError("directory does not exist: \{path}")
+  }
+  verify_is_directory(path)
+}
