@@ -148,7 +148,7 @@ test "preferred_config_to_content" {
 ///|
 async fn expect_directory(path : String) -> Unit {
   try @fs.kind(path) catch {
-    err => fail("failed to inspect directory \{path}: \{@debug.to_repr(err)}")
+    err => fail("failed to inspect directory \{path}: \{(err)}")
   } noraise {
     Directory => ()
     _ => fail("expected directory: \{path}")

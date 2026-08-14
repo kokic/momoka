@@ -1,8 +1,7 @@
 ///|
 async fn read_line_from_stdin() -> String? raise CliError {
   try @stdio.stdin.read_until("\n") catch {
-    err =>
-      raise CliError("failed to read input from stdin: \{@debug.to_repr(err)}")
+    err => raise CliError("failed to read input from stdin: \{(err)}")
   } noraise {
     line => line
   }
@@ -22,8 +21,7 @@ fn absolute_path(path : String) -> String raise CliError {
 ///|
 async fn path_exists(path : String) -> Bool raise CliError {
   try @fs.exists(path) catch {
-    err =>
-      raise CliError("failed to check path \{path}: \{@debug.to_repr(err)}")
+    err => raise CliError("failed to check path \{path}: \{(err)}")
   } noraise {
     exists => exists
   }
@@ -49,8 +47,7 @@ async fn write_new_string_file(
     raise CliError("file already exists: \{path}")
   }
   try @fs.write_file(path, content, create_mode=CreateNew) catch {
-    err =>
-      raise CliError("failed to write file \{path}: \{@debug.to_repr(err)}")
+    err => raise CliError("failed to write file \{path}: \{(err)}")
   } noraise {
     _ => ()
   }
@@ -62,8 +59,7 @@ async fn write_or_truncate_string_file(
   content : String,
 ) -> Unit raise CliError {
   try @fs.write_file(path, content, create_mode=CreateOrTruncate) catch {
-    err =>
-      raise CliError("failed to write file \{path}: \{@debug.to_repr(err)}")
+    err => raise CliError("failed to write file \{path}: \{(err)}")
   } noraise {
     _ => ()
   }
@@ -71,9 +67,9 @@ async fn write_or_truncate_string_file(
 
 ///|
 fn home_dir() -> String? {
-  let home = @sys.get_env_var("HOME")
+  let home = @env.get_env_var("HOME")
   guard home is Some(path) && !path.is_empty() else {
-    let userprofile = @sys.get_env_var("USERPROFILE")
+    let userprofile = @env.get_env_var("USERPROFILE")
     guard userprofile is Some(path) && !path.is_empty() else { None }
     Some(path)
   }
@@ -83,10 +79,7 @@ fn home_dir() -> String? {
 ///|
 async fn verify_is_directory(path : String) -> Unit raise CliError {
   try @fs.kind(path) catch {
-    err =>
-      raise CliError(
-        "failed to inspect directory \{path}: \{@debug.to_repr(err)}",
-      )
+    err => raise CliError("failed to inspect directory \{path}: \{err}")
   } noraise {
     Directory => ()
     _ => raise CliError("path exists but is not a directory: \{path}")
@@ -97,10 +90,7 @@ async fn verify_is_directory(path : String) -> Unit raise CliError {
 async fn ensure_dir(path : String) -> Unit raise CliError {
   guard !path_exists(path) else { verify_is_directory(path) }
   try @fs.mkdir(path) catch {
-    err =>
-      raise CliError(
-        "failed to create directory \{path}: \{@debug.to_repr(err)}",
-      )
+    err => raise CliError("failed to create directory \{path}: \{(err)}")
   } noraise {
     _ => ()
   }

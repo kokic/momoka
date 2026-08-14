@@ -118,14 +118,14 @@ async fn load_preferred_config(
   try @fs.read_file(preferred_file) catch {
     err =>
       raise CliError(
-        "failed to read preferences \{preferred_file}: \{@debug.to_repr(err)}",
+        "failed to read preferences \{preferred_file}: \{Repr(err)}",
       )
   } noraise {
     content =>
       try content.text() catch {
         err =>
           raise CliError(
-            "failed to decode preferences \{preferred_file}: \{@debug.to_repr(err)}",
+            "failed to decode preferences \{preferred_file}: \{Repr(err)}",
           )
       } noraise {
         text => PreferredConfig::parse(text)
