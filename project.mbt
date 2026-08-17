@@ -12,14 +12,6 @@ priv struct ProjectSettings {
 }
 
 ///|
-priv struct ProjectFiles {
-  moon_mod : String
-  moon_pkg : String
-  gitignore : String
-  gitattributes : String
-}
-
-///|
 priv struct ProjectFile {
   filename : String
   content : String
@@ -60,7 +52,7 @@ async fn bootstrap_project(
   config : CliConfig,
   username : String,
   preferred : PreferredConfig,
-) -> String raise CliError {
+) -> (String, Array[ProjectFile]) raise CliError {
   match target.mode {
     Create => ensure_dir_recursive(target.project_dir)
     Init => ()
@@ -72,7 +64,7 @@ async fn bootstrap_project(
     preferred,
   )
   write_project_files(target.project_dir, files)
-  target.project_dir
+  (target.project_dir, files)
 }
 
 ///|
@@ -81,21 +73,32 @@ fn render_project_files(
   overrides : ProjectOverrides,
   username : String,
   preferred : PreferredConfig,
-) -> ProjectFiles {
+) -> Array[ProjectFile] {
   let settings = project_settings(overrides, preferred)
   let module_name = module_name_from_project_dir(project_dir)
-  {
-    moon_mod: moon_mod_content(
-      username~,
-      module_name~,
-      settings.license,
-      settings.host,
-      settings.preferred_target,
+  [
+    register_project_file(
+      "moon.mod",
+      moon_mod_content(
+        username~,
+        module_name~,
+        settings.license,
+        settings.host,
+        settings.preferred_target,
+      ),
     ),
-    moon_pkg: moon_pkg_content(),
-    gitignore: gitignore_content(),
-    gitattributes: gitattributes_content(),
-  }
+    register_project_file("moon.pkg", moon_pkg_content()),
+    register_project_file(".gitignore", gitignore_content()),
+    register_project_file(".gitattributes", gitattributes_content()),
+  ]
+}
+
+///|
+fn register_project_file(
+  filename : String,
+  content : String,
+) -> ProjectFile {
+  { filename, content }
 }
 
 ///|
@@ -130,11 +133,10 @@ fn configured_value(
 ///|
 async fn write_project_files(
   project_dir : String,
-  files : ProjectFiles,
+  files : ArrayView[ProjectFile],
 ) -> Unit raise CliError {
-  let entries = files.to_entries()
-  ensure_project_files_absent(project_dir, entries)
-  for file in entries {
+  ensure_project_files_absent(project_dir, files)
+  for file in files {
     write_new_string_file(
       project_file_path(project_dir, file.filename),
       file.content,
@@ -158,14 +160,4 @@ async fn ensure_project_files_absent(
 ///|
 fn project_file_path(project_dir : String, filename : String) -> String {
   @path.Path::join(project_dir, filename).to_string()
-}
-
-///|
-fn ProjectFiles::to_entries(self : ProjectFiles) -> Array[ProjectFile] {
-  [
-    { filename: "moon.mod", content: self.moon_mod },
-    { filename: "moon.pkg", content: self.moon_pkg },
-    { filename: ".gitignore", content: self.gitignore },
-    { filename: ".gitattributes", content: self.gitattributes },
-  ]
 }

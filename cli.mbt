@@ -1,6 +1,6 @@
 ///|
 /// Also see: moon.mod - `version`
-pub const VERSION = "0.4.4"
+pub const VERSION = "0.4.5"
 
 ///|
 const DEFAULT_LICENSE : String = "AGPL-3.0"
@@ -52,6 +52,7 @@ priv enum PreferencesRequest {
 priv enum CliRequest {
   Help(HelpTopic)
   Project(CliConfig)
+  Upgrade(String)
   Preferences(PreferencesRequest)
 }
 
@@ -140,6 +141,11 @@ fn cli_command() -> @argparse.Command {
       short: Some('i'),
       about: "Initialize in an existing directory instead of creating it.",
     },
+    {
+      id: "upgrade",
+      short: Some('u'),
+      about: "Upgrade all dependencies of the project to their latest versions.",
+    },
   ]
   let project_positionals = [{ id: "path", about: "Project directory path." }]
   @argparse.Command(
@@ -162,12 +168,16 @@ fn matched_value(matches : @argparse.Matches, value_id : String) -> String? {
 fn decode_project_request(
   matches : @argparse.Matches,
 ) -> CliRequest raise CliError {
+  let path = matched_value(matches, "path")
+  if matches.flags.get("upgrade").unwrap_or(false) {
+    return Upgrade(path.unwrap_or("."))
+  }
   let mode = if matches.flags.get("init").unwrap_or(false) {
     Init
   } else {
     Create
   }
-  let path = match matched_value(matches, "path") {
+  let path = match path {
     Some(path) => path
     None => if mode is Init { "." } else { raise CliError(usage_text()) }
   }

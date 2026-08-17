@@ -4,6 +4,7 @@ import {
   "moonbitlang/core/argparse",
   "moonbitlang/core/debug",
   "moonbitlang/async/stdio",
+  "moonbitlang/async/process",
   "moonbitlang/x/path",
   "moonbitlang/x/sys",
   "moonbitlang/async",

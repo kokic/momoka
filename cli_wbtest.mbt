@@ -7,6 +7,14 @@ fn expect_project_request(args : ArrayView[String]) -> CliConfig raise CliError 
 }
 
 ///|
+fn expect_upgrade_path(args : ArrayView[String]) -> String raise CliError {
+  guard parse_cli_args(args) is Upgrade(path) else {
+    abort("expected upgrade request")
+  }
+  path
+}
+
+///|
 test "parse_cli_args defaults" {
   let config = expect_project_request(["demo"])
   @test.assert_eq(config.location.path, "demo")
@@ -47,6 +55,54 @@ test "parse_cli_args init without path uses current dir" {
   let config = expect_project_request(["--init"])
   @test.assert_eq(config.location.path, ".")
   guard config.location.mode is Init else { fail("expected init mode") }
+}
+
+///|
+test "parse_cli_args upgrade defaults to current directory" {
+  @test.assert_eq(expect_upgrade_path(["--upgrade"]), ".")
+  @test.assert_eq(expect_upgrade_path(["-u"]), ".")
+}
+
+///|
+test "parse_cli_args upgrade with path" {
+  @test.assert_eq(expect_upgrade_path(["demo", "-u"]), "demo")
+  @test.assert_eq(expect_upgrade_path(["--upgrade", "demo"]), "demo")
+}
+
+///|
+test "parse_import_modules extracts module names without versions" {
+  let modules = parse_import_modules(
+    (
+      #|import {
+      #|  "moonbitlang/x@0.4.50",
+      #|  "moonbitlang/async@0.20.6",
+      #|  "kokic/moonbit-chalk@0.6.0",
+      #|}
+    ),
+  )
+  @test.assert_eq(
+    modules,
+    ["moonbitlang/x", "moonbitlang/async", "kokic/moonbit-chalk"],
+  )
+}
+
+///|
+test "parse_import_modules handles versionless and local imports" {
+  let modules = parse_import_modules(
+    (
+      #|import {
+      #|  "moonbitlang/x",
+      #|  "../local_pkg",
+      #|  "./other",
+      #|}
+    ),
+  )
+  @test.assert_eq(modules, ["moonbitlang/x"])
+}
+
+///|
+test "parse_import_modules handles empty import block" {
+  @test.assert_eq(parse_import_modules("import {}"), [])
 }
 
 ///|
@@ -188,7 +244,7 @@ async test "create_project creates missing project directory" {
       overrides: { license: None, host: None, preferred_target: None },
     }
     let target = validate_project_target(config)
-    let project_dir = bootstrap_project(
+    let (project_dir, _) = bootstrap_project(
       target,
       config,
       "tester",
