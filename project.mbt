@@ -94,10 +94,7 @@ fn render_project_files(
 }
 
 ///|
-fn register_project_file(
-  filename : String,
-  content : String,
-) -> ProjectFile {
+fn register_project_file(filename : String, content : String) -> ProjectFile {
   { filename, content }
 }
 

@@ -19,10 +19,7 @@ async fn import_modules_from_moon_mod(
   } noraise {
     content =>
       try content.text() catch {
-        err =>
-          raise CliError(
-            "failed to decode \{moon_mod_path}: \{Repr(err)}",
-          )
+        err => raise CliError("failed to decode \{moon_mod_path}: \{Repr(err)}")
       } noraise {
         text => parse_import_modules(text)
       }
@@ -64,15 +61,35 @@ fn quoted_import_content(line : String) -> String? {
 
 ///|
 fn module_name_from_import(entry : String) -> String? {
-  guard !entry.has_prefix(".") && !entry.has_prefix("/") && !entry.contains(
-    "://",
-  ) else {
+  guard !entry.has_prefix(".") &&
+    !entry.has_prefix("/") &&
+    !entry.contains("://") else {
     None
   }
   match entry.split_once("@") {
     Some((name, _)) if !name.is_empty() => Some(name.to_owned())
     None => Some(entry)
     _ => None
+  }
+}
+
+///|
+fn upgrade_command(mod_names : ArrayView[String]) -> String {
+  mod_names.map(fn(name) { "moon add \{name} --upgrade" }).join("; ")
+}
+
+///|
+fn upgrade_shell_command(
+  mod_names : ArrayView[String],
+) -> (String, Array[String]) {
+  let commands = mod_names.map(fn(name) { "moon add \{name} --upgrade" })
+  if @path.sep == '\\' {
+    let comspec = @env.get_env_var("COMSPEC").unwrap_or("cmd")
+    let body = commands.join(" || set c=1 & ")
+    (comspec, ["/V:ON", "/C", "set c=0 & \{body} & exit /b !c!"])
+  } else {
+    let body = commands.join(" || c=1; ")
+    ("sh", ["-c", "c=0; \{body}; exit $c"])
   }
 }
 
@@ -84,20 +101,15 @@ async fn upgrade_project_modules(
   if mod_names.is_empty() {
     return "no dependencies to upgrade in \{project_dir}"
   }
-  let status = try
-    @process.run(
-      "moon",
-      ["add", ..mod_names, "--upgrade"],
-      cwd=project_dir,
-    )
-  catch {
+  let (shell, shell_args) = upgrade_shell_command(mod_names)
+  let status = try @process.run(shell, shell_args, cwd=project_dir) catch {
     err => raise CliError("failed to run moon add --upgrade: \{err}")
   } noraise {
     status => status
   }
   guard status == 0 else {
     raise CliError(
-      "moon add \{mod_names.join(" ")} --upgrade failed with exit code \{status}",
+      "moon add --upgrade failed with exit code \{status}: \{upgrade_command(mod_names)}",
     )
   }
   "upgraded \{mod_names.length()} dependencies in \{project_dir}: \{mod_names.join(", ")}"

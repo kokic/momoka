@@ -80,10 +80,9 @@ test "parse_import_modules extracts module names without versions" {
       #|}
     ),
   )
-  @test.assert_eq(
-    modules,
-    ["moonbitlang/x", "moonbitlang/async", "kokic/moonbit-chalk"],
-  )
+  @test.assert_eq(modules, [
+    "moonbitlang/x", "moonbitlang/async", "kokic/moonbit-chalk",
+  ])
 }
 
 ///|
