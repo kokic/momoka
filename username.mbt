@@ -6,7 +6,7 @@ async fn prompt_username(remaining_retry : Int) -> String raise CliError {
   guard remaining_retry > 0 else {
     raise CliError("failed to read username from stdin")
   }
-  println("(first) please input MoonBit username:")
+  println("please input MoonBit username:")
   guard read_line_from_stdin() is Some(line) else {
     raise CliError("failed to read username from stdin")
   }

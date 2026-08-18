@@ -29,6 +29,7 @@ Options:
   -h, --help               Show help information.
   -V, --version            Show version information.
   -i, --init               Initialize in an existing directory instead of creating it.
+  -u, --upgrade            Upgrade all dependencies of the project to their latest versions.
   -l, --license <license>  License for moon.mod [default: prefs or AGPL-3.0].
   --host <host>            Repository hosting domain [default: prefs or github.com].
   -t, --target <target>    Preferred target [default: prefs or native].

@@ -40,9 +40,11 @@ async fn ensure_new_project_target(path : String) -> Unit raise CliError {
 }
 
 ///|
-fn module_name_from_project_dir(project_dir : String) -> String {
+fn module_name_from_project_dir(project_dir : String) -> String raise CliError {
   let module_name = @path.Path::basename(project_dir).to_owned()
-  guard !module_name.is_empty() else { "moon-new-mini" }
+  guard !module_name.is_empty() else {
+    raise CliError("cannot derive a module name from directory: \{project_dir}")
+  }
   module_name
 }
 
@@ -73,7 +75,7 @@ fn render_project_files(
   overrides : ProjectOverrides,
   username : String,
   preferred : PreferredConfig,
-) -> Array[ProjectFile] {
+) -> Array[ProjectFile] raise CliError {
   let settings = project_settings(overrides, preferred)
   let module_name = module_name_from_project_dir(project_dir)
   [

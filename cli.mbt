@@ -1,6 +1,6 @@
 ///|
 /// Also see: moon.mod - `version`
-pub const VERSION = "0.4.5"
+pub const VERSION = "0.5.0"
 
 ///|
 const DEFAULT_LICENSE : String = "AGPL-3.0"

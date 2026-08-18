@@ -1,11 +1,11 @@
 ///|
 fn preferred_dir_path(home : String) -> String {
-  @path.Path::join(home, ".moon-mini").to_string()
+  @path.Path::join(home, ".momoka").to_string()
 }
 
 ///|
 fn preferred_file_path(home : String) -> String {
-  @path.Path::join(preferred_dir_path(home), "preferred.txt").to_string()
+  @path.Path::join(preferred_dir_path(home), "preferred.json").to_string()
 }
 
 ///|
@@ -25,12 +25,6 @@ priv enum PreferredKey {
 }
 
 ///|
-priv struct PreferredEntry {
-  key : PreferredKey
-  value : String
-}
-
-///|
 fn PreferredConfig::empty() -> PreferredConfig {
   { username: None, license: None, host: None, preferred_target: None }
 }
@@ -41,72 +35,54 @@ fn PreferredKey::name(self : PreferredKey) -> String {
     UsernameField => "username"
     LicenseField => "license"
     HostField => "host"
-    TargetField => "target"
+    TargetField => "preferred_target"
   }
 }
 
 ///|
-fn parse_preferred_value(line : String, key : PreferredKey) -> String? {
-  let key_name = key.name()
-  let prefix = "\{key_name} "
-  guard line.has_prefix(prefix) else { None }
-  let value = line.view(start_offset=prefix.length()).trim().to_owned()
-  guard !value.is_empty() else { None }
-  Some(value)
-}
-
-///|
-fn parse_preferred_entry(line : String) -> PreferredEntry? {
-  for key in [UsernameField, LicenseField, HostField, TargetField] {
-    guard parse_preferred_value(line, key) is Some(value) else { continue }
-    return Some({ key, value })
+fn PreferredConfig::parse(content : String) -> PreferredConfig raise CliError {
+  let json = try @json.parse(content) catch {
+    err => raise CliError("failed to parse preferences JSON: \{err}")
+  } noraise {
+    json => json
   }
-  None
-}
-
-///|
-fn PreferredConfig::apply_entry(
-  self : PreferredConfig,
-  entry : PreferredEntry,
-) -> PreferredConfig {
-  match entry.key {
-    UsernameField => { ..self, username: Some(entry.value) }
-    LicenseField => { ..self, license: Some(entry.value) }
-    HostField => { ..self, host: Some(entry.value) }
-    TargetField => { ..self, preferred_target: Some(entry.value) }
+  guard json is Object(obj) else {
+    raise CliError("expected preferences JSON object")
+  }
+  {
+    username: string_field(obj, UsernameField),
+    license: string_field(obj, LicenseField),
+    host: string_field(obj, HostField),
+    preferred_target: string_field(obj, TargetField),
   }
 }
 
 ///|
-fn PreferredConfig::parse(content : String) -> PreferredConfig {
-  let mut preferred = PreferredConfig::empty()
-  for raw_line in content.split("\n") {
-    let line = raw_line.trim().to_owned()
-    guard !line.is_empty() else { continue }
-    guard parse_preferred_entry(line) is Some(entry) else { continue }
-    preferred = preferred.apply_entry(entry)
+fn string_field(obj : Map[String, Json], key : PreferredKey) -> String? {
+  match obj.get(key.name()) {
+    Some(String(value)) => Some(value)
+    _ => None
   }
-  preferred
 }
 
 ///|
 fn PreferredConfig::to_content(self : PreferredConfig) -> String {
-  let lines : Array[String] = []
-  push_preferred_line(lines, UsernameField, self.username)
-  push_preferred_line(lines, LicenseField, self.license)
-  push_preferred_line(lines, HostField, self.host)
-  push_preferred_line(lines, TargetField, self.preferred_target)
-  lines.join("\n")
+  let obj : Map[String, Json] = Map([])
+  push_string_field(obj, UsernameField, self.username)
+  push_string_field(obj, LicenseField, self.license)
+  push_string_field(obj, HostField, self.host)
+  push_string_field(obj, TargetField, self.preferred_target)
+  Json::object(obj).stringify(indent=2)
 }
 
 ///|
-fn push_preferred_line(
-  lines : Array[String],
+fn push_string_field(
+  obj : Map[String, Json],
   key : PreferredKey,
   value : String?,
 ) -> Unit {
   if value is Some(value) {
-    lines.push("\{key.name()} \{value}")
+    obj[key.name()] = Json::string(value)
   }
 }
 
@@ -115,22 +91,23 @@ async fn load_preferred_config(
   preferred_file : String,
 ) -> PreferredConfig raise CliError {
   guard path_exists(preferred_file) else { PreferredConfig::empty() }
-  try @fs.read_file(preferred_file) catch {
+  let content = try @fs.read_file(preferred_file) catch {
     err =>
       raise CliError(
         "failed to read preferences \{preferred_file}: \{Repr(err)}",
       )
   } noraise {
-    content =>
-      try content.text() catch {
-        err =>
-          raise CliError(
-            "failed to decode preferences \{preferred_file}: \{Repr(err)}",
-          )
-      } noraise {
-        text => PreferredConfig::parse(text)
-      }
+    content => content
   }
+  let text = try content.text() catch {
+    err =>
+      raise CliError(
+        "failed to decode preferences \{preferred_file}: \{Repr(err)}",
+      )
+  } noraise {
+    text => text
+  }
+  PreferredConfig::parse(text)
 }
 
 ///|
