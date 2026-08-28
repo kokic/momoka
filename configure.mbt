@@ -37,7 +37,7 @@ async fn PreferredConfig::interactive_prompt(
     self.preferred_target,
     DEFAULT_TARGET,
   )
-  { username: self.username, license, host, preferred_target }
+  { username: self.username, license, host, preferred_target, }
 }
 
 ///|

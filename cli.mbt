@@ -15,6 +15,15 @@ const DEFAULT_TARGET : String = "native"
 const CLI_NAME : String = "momoka"
 
 ///|
+const NEW_COMMAND : String = "new"
+
+///|
+const INIT_COMMAND : String = "init"
+
+///|
+const UPGRADE_COMMAND : String = "upgrade"
+
+///|
 const CFG_COMMAND : String = "cfg"
 
 ///|
@@ -50,112 +59,101 @@ priv enum PreferencesRequest {
 
 ///|
 priv enum CliRequest {
-  Help(HelpTopic)
   Project(CliConfig)
   Upgrade(String)
   Preferences(PreferencesRequest)
 }
 
 ///|
-priv enum HelpTopic {
-  TopLevelHelp
-  PreferencesHelp
+fn project_options() -> Array[@argparse.OptionArg] {
+  [
+    @argparse.OptionArg(
+      "license",
+      short='l',
+      about="License for moon.mod [default: prefs or \{DEFAULT_LICENSE}].",
+    ),
+    @argparse.OptionArg(
+      "host",
+      about="Repository hosting domain [default: prefs or \{DEFAULT_HOST}].",
+    ),
+    @argparse.OptionArg(
+      "target",
+      short='t',
+      about="Preferred target [default: prefs or \{DEFAULT_TARGET}].",
+    ),
+  ]
 }
 
 ///|
-priv struct NamedArgSpec {
-  id : String
-  short : Char?
-  about : String
-}
-
-///|
-priv struct PositionArgSpec {
-  id : String
-  about : String
-}
-
-///|
-fn NamedArgSpec::to_option(self : NamedArgSpec) -> @argparse.OptionArg {
-  @argparse.OptionArg(
-    self.id,
-    short?=self.short,
-    long=self.id,
-    about=self.about,
-  )
-}
-
-///|
-fn NamedArgSpec::to_flag(self : NamedArgSpec) -> @argparse.FlagArg {
-  @argparse.FlagArg(self.id, short?=self.short, long=self.id, about=self.about)
-}
-
-///|
-fn PositionArgSpec::to_positional(
-  self : PositionArgSpec,
-) -> @argparse.PositionArg {
-  @argparse.PositionArg(
-    self.id,
-    about=self.about,
-    num_args=@argparse.ValueRange(lower=0, upper=1),
-  )
-}
-
-///|
-fn preferences_command(
-  name : String,
-  hidden? : Bool = false,
-) -> @argparse.Command {
+fn new_command() -> @argparse.Command {
   @argparse.Command(
-    name,
+    NEW_COMMAND,
+    about="Create a new MoonBit module in a new directory.",
+    options=project_options(),
+    positionals=[
+      @argparse.PositionArg(
+        "path",
+        about="Project directory path to create.",
+        num_args=@argparse.ValueRange::single(),
+      ),
+    ],
+  )
+}
+
+///|
+fn init_command() -> @argparse.Command {
+  @argparse.Command(
+    INIT_COMMAND,
+    about="Initialize a MoonBit module in an existing directory.",
+    options=project_options(),
+    positionals=[
+      @argparse.PositionArg(
+        "path",
+        about="Project directory path [default: current directory].",
+      ),
+    ],
+  )
+}
+
+///|
+fn upgrade_command() -> @argparse.Command {
+  @argparse.Command(
+    UPGRADE_COMMAND,
+    about="Upgrade all dependencies of the project to their latest versions.",
+    positionals=[
+      @argparse.PositionArg(
+        "path",
+        about="Project directory path [default: current directory].",
+      ),
+    ],
+  )
+}
+
+///|
+fn preferences_command() -> @argparse.Command {
+  @argparse.Command(
+    CFG_COMMAND,
     about="Configure default license / host / target, or print them.",
     flags=[
       @argparse.FlagArg("show", long="show", about="Print current preferences."),
     ],
-    hidden~,
   )
 }
 
 ///|
 fn cli_command() -> @argparse.Command {
-  let project_options = [
-    {
-      id: "license",
-      short: Some('l'),
-      about: "License for moon.mod [default: prefs or \{DEFAULT_LICENSE}].",
-    },
-    {
-      id: "host",
-      short: None,
-      about: "Repository hosting domain [default: prefs or \{DEFAULT_HOST}].",
-    },
-    {
-      id: "target",
-      short: Some('t'),
-      about: "Preferred target [default: prefs or \{DEFAULT_TARGET}].",
-    },
-  ]
-  let project_flags = [
-    {
-      id: "init",
-      short: Some('i'),
-      about: "Initialize in an existing directory instead of creating it.",
-    },
-    {
-      id: "upgrade",
-      short: Some('u'),
-      about: "Upgrade all dependencies of the project to their latest versions.",
-    },
-  ]
-  let project_positionals = [{ id: "path", about: "Project directory path." }]
   @argparse.Command(
     CLI_NAME,
     version=VERSION,
-    options=project_options.map(NamedArgSpec::to_option),
-    flags=project_flags.map(NamedArgSpec::to_flag),
-    positionals=project_positionals.map(PositionArgSpec::to_positional),
-    subcommands=[preferences_command(CFG_COMMAND)],
-    disable_help_subcommand=true,
+    about="Create a minimal MoonBit module.",
+    subcommands=[
+      new_command(),
+      init_command(),
+      upgrade_command(),
+      preferences_command(),
+    ],
+    arg_required_else_help=true,
+    subcommand_required=true,
   )
 }
 
@@ -165,29 +163,33 @@ fn matched_value(matches : @argparse.Matches, value_id : String) -> String? {
 }
 
 ///|
-fn decode_project_request(
-  matches : @argparse.Matches,
-) -> CliRequest raise CliError {
-  let path = matched_value(matches, "path")
-  if matches.flags.get("upgrade").unwrap_or(false) {
-    return Upgrade(path.unwrap_or("."))
+fn project_overrides(matches : @argparse.Matches) -> ProjectOverrides {
+  {
+    license: matched_value(matches, "license"),
+    host: matched_value(matches, "host"),
+    preferred_target: matched_value(matches, "target"),
   }
-  let mode = if matches.flags.get("init").unwrap_or(false) {
-    Init
-  } else {
-    Create
-  }
-  let path = match path {
-    Some(path) => path
-    None => if mode is Init { "." } else { raise CliError(usage_text()) }
+}
+
+///|
+fn decode_new_request(matches : @argparse.Matches) -> CliRequest raise CliError {
+  guard matched_value(matches, "path") is Some(path) else {
+    raise CliError("missing required argument: path")
   }
   Project({
-    location: { path, mode },
-    overrides: {
-      license: matched_value(matches, "license"),
-      host: matched_value(matches, "host"),
-      preferred_target: matched_value(matches, "target"),
+    location: { path, mode: Create, },
+    overrides: project_overrides(matches),
+  })
+}
+
+///|
+fn decode_init_request(matches : @argparse.Matches) -> CliRequest {
+  Project({
+    location: {
+      path: matched_value(matches, "path").unwrap_or("."),
+      mode: Init,
     },
+    overrides: project_overrides(matches),
   })
 }
 
@@ -202,43 +204,29 @@ fn decode_preferences_request(matches : @argparse.Matches) -> CliRequest {
 
 ///|
 fn decode_subcommand(
-  _name : String,
-  submatches : @argparse.Matches,
-) -> CliRequest {
-  decode_preferences_request(submatches)
+  name : String,
+  matches : @argparse.Matches,
+) -> CliRequest raise CliError {
+  match name {
+    NEW_COMMAND => decode_new_request(matches)
+    INIT_COMMAND => decode_init_request(matches)
+    UPGRADE_COMMAND => Upgrade(matched_value(matches, "path").unwrap_or("."))
+    CFG_COMMAND => decode_preferences_request(matches)
+    _ => panic()
+  }
 }
 
 ///|
 fn decode_cli_matches(matches : @argparse.Matches) -> CliRequest raise CliError {
-  match matches.subcommand {
-    Some((name, submatches)) => decode_subcommand(name, submatches)
-    None => decode_project_request(matches)
-  }
-}
-
-///|
-fn is_help_arg(arg : String) -> Bool {
-  arg == "-h" || arg == "--help"
-}
-
-///|
-fn help_request(args : ArrayView[String]) -> CliRequest? {
-  match args {
-    [] => Some(Help(TopLevelHelp))
-    [arg] if is_help_arg(arg) => Some(Help(TopLevelHelp))
-    ["cfg", arg] if is_help_arg(arg) => Some(Help(PreferencesHelp))
-    _ => None
-  }
+  guard matches.subcommand is Some((name, submatches)) else { panic() }
+  decode_subcommand(name, submatches)
 }
 
 ///|
 fn parse_cli_args(args : ArrayView[String]) -> CliRequest raise CliError {
-  guard help_request(args) is Some(request) else {
-    try @argparse.Command::parse(cli_command(), argv=args) catch {
-      err => raise CliError("\{err}")
-    } noraise {
-      matches => decode_cli_matches(matches)
-    }
+  try @argparse.Command::parse(cli_command(), argv=args) catch {
+    err => raise CliError("\{err}")
+  } noraise {
+    matches => decode_cli_matches(matches)
   }
-  request
 }

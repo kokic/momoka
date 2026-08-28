@@ -74,22 +74,19 @@ fn module_name_from_import(entry : String) -> String? {
 }
 
 ///|
-fn upgrade_command(mod_names : ArrayView[String]) -> String {
-  mod_names.map(fn(name) { "moon add \{name} --upgrade" }).join("; ")
-}
-
-///|
-fn upgrade_shell_command(
-  mod_names : ArrayView[String],
-) -> (String, Array[String]) {
-  let commands = mod_names.map(fn(name) { "moon add \{name} --upgrade" })
-  if @path.sep == '\\' {
-    let comspec = @env.get_env_var("COMSPEC").unwrap_or("cmd")
-    let body = commands.join(" || set c=1 & ")
-    (comspec, ["/V:ON", "/C", "set c=0 & \{body} & exit /b !c!"])
-  } else {
-    let body = commands.join(" || c=1; ")
-    ("sh", ["-c", "c=0; \{body}; exit $c"])
+fn upgrade_outcome_message(
+  name : String,
+  outcome : Result[Int, String],
+) -> String? {
+  match outcome {
+    Err(message) =>
+      Some("failed to run `moon add \{name} --upgrade`: \{message}")
+    Ok(status) =>
+      if status == 0 {
+        None
+      } else {
+        Some("`moon add \{name} --upgrade` failed with exit code \{status}")
+      }
   }
 }
 
@@ -101,15 +98,23 @@ async fn upgrade_project_modules(
   if mod_names.is_empty() {
     return "no dependencies to upgrade in \{project_dir}"
   }
-  let (shell, shell_args) = upgrade_shell_command(mod_names)
-  let status = try @process.run(shell, shell_args, cwd=project_dir) catch {
-    err => raise CliError("failed to run moon add --upgrade: \{err}")
-  } noraise {
-    status => status
+  let failures : Array[String] = []
+  for name in mod_names {
+    let outcome = try
+      @process.run("moon", ["add", name, "--upgrade"], cwd=project_dir)
+    catch {
+      err => Err("\{err}")
+    } noraise {
+      status => Ok(status)
+    }
+    guard upgrade_outcome_message(name, outcome) is Some(failure) else {
+      continue
+    }
+    failures.push(failure)
   }
-  guard status == 0 else {
+  guard failures.is_empty() else {
     raise CliError(
-      "moon add --upgrade failed with exit code \{status}: \{upgrade_command(mod_names)}",
+      "failed to upgrade \{failures.length()} of \{mod_names.length()} dependencies: \{failures.join("; ")}",
     )
   }
   "upgraded \{mod_names.length()} dependencies in \{project_dir}: \{mod_names.join(", ")}"

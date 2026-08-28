@@ -26,7 +26,7 @@ priv enum PreferredKey {
 
 ///|
 fn PreferredConfig::empty() -> PreferredConfig {
-  { username: None, license: None, host: None, preferred_target: None }
+  { username: None, license: None, host: None, preferred_target: None, }
 }
 
 ///|

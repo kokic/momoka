@@ -22,7 +22,7 @@ async fn validate_project_target(
   config : CliConfig,
 ) -> ProjectTarget raise CliError {
   let project_dir = absolute_path(config.location.path)
-  let target : ProjectTarget = { project_dir, mode: config.location.mode }
+  let target : ProjectTarget = { project_dir, mode: config.location.mode, }
   match target.mode {
     Create => ensure_new_project_target(target.project_dir)
     Init => ensure_existing_dir(target.project_dir)
@@ -34,7 +34,7 @@ async fn validate_project_target(
 async fn ensure_new_project_target(path : String) -> Unit raise CliError {
   guard !path_exists(path) else {
     raise CliError(
-      "path already exists: \{path}; use --init to initialize an existing directory",
+      "path already exists: \{path}; use `momoka init` to initialize an existing directory",
     )
   }
 }
@@ -97,7 +97,7 @@ fn render_project_files(
 
 ///|
 fn register_project_file(filename : String, content : String) -> ProjectFile {
-  { filename, content }
+  { filename, content, }
 }
 
 ///|

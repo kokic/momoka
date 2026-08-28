@@ -38,7 +38,7 @@ async fn ensure_username_with_preferred() -> UserPreferences raise CliError {
       username: Some(prompted_username),
     }
     save_preferred_config(preferred_file, updated_preferred)
-    { username: prompted_username, preferred: updated_preferred }
+    { username: prompted_username, preferred: updated_preferred, }
   }
-  UserPreferences::{ username, preferred }
+  UserPreferences::{ username, preferred, }
 }

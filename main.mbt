@@ -22,7 +22,6 @@ async fn run(args : ArrayView[String]) -> String raise CliError {
 ///|
 async fn handle_cli_request(request : CliRequest) -> String raise CliError {
   match request {
-    Help(topic) => topic.text()
     Project(config) => run_project_request(config)
     Upgrade(path) => run_upgrade_request(path)
     Preferences(Configure) => configure_preferred_defaults()
@@ -50,8 +49,16 @@ fn ProjectMode::success_message(
   files : ArrayView[ProjectFile],
 ) -> String {
   let action = self.action_text()
-  let file_names = files.map(fn(f) { f.filename }).map(emph).join(", ")
+  let file_names = files.map(f => f.filename).map(emph).join(", ")
   "\{action} \{file_names} in \{emph(project_dir)}"
+}
+
+///|
+fn ProjectMode::action_text(self : ProjectMode) -> String {
+  match self {
+    Create => "created and initialized"
+    Init => "initialized"
+  }
 }
 
 ///|
