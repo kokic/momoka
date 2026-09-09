@@ -3,8 +3,8 @@ name = "kokic/momoka"
 version = "0.6.0"
 
 import {
-  "moonbitlang/x@0.4.50",
-  "moonbitlang/async@0.20.6",
+  "moonbitlang/x@0.5.3",
+  "moonbitlang/async@0.21.3",
   "kokic/moonbit-chalk@0.6.0",
 }
 
