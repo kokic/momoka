@@ -31,11 +31,11 @@ priv struct ProjectFile {
 }
 
 ///|
-async fn validate_project_target(
-  location : ProjectLocation,
+async fn ProjectLocation::validate(
+  self : ProjectLocation,
 ) -> ProjectTarget raise CliError {
-  let project_dir = absolute_path(location.path)
-  let target : ProjectTarget = { project_dir, mode: location.mode, }
+  let project_dir = absolute_path(self.path)
+  let target : ProjectTarget = { project_dir, mode: self.mode, }
   match target.mode {
     Create => ensure_new_project_target(target.project_dir)
     Initialization => ensure_existing_dir(target.project_dir)
@@ -62,12 +62,12 @@ fn module_name_from_project_dir(project_dir : String) -> String raise CliError {
 }
 
 ///|
-fn render_project_files(
-  project_dir : String,
+fn ProjectTarget::render_files(
+  self : ProjectTarget,
   username : String,
   settings : ProjectSettings,
 ) -> Array[ProjectFile] raise CliError {
-  let module_name = module_name_from_project_dir(project_dir)
+  let module_name = module_name_from_project_dir(self.project_dir)
   [
     {
       filename: "moon.mod",
@@ -86,19 +86,15 @@ fn render_project_files(
 }
 
 ///|
-fn project_settings(
-  overrides : ProjectOverrides,
+fn ProjectOverrides::resolve(
+  self : ProjectOverrides,
   preferred : PreferredConfig,
 ) -> ProjectSettings {
   {
-    license: configured_value(
-      overrides.license,
-      preferred.license,
-      DEFAULT_LICENSE,
-    ),
-    host: configured_value(overrides.host, preferred.host, DEFAULT_HOST),
+    license: configured_value(self.license, preferred.license, DEFAULT_LICENSE),
+    host: configured_value(self.host, preferred.host, DEFAULT_HOST),
     preferred_target: configured_value(
-      overrides.preferred_target,
+      self.preferred_target,
       preferred.preferred_target,
       DEFAULT_TARGET,
     ),
@@ -115,26 +111,26 @@ fn configured_value(
 }
 
 ///|
-async fn write_project_files(
-  project_dir : String,
+async fn ProjectTarget::write_files(
+  self : ProjectTarget,
   files : ArrayView[ProjectFile],
 ) -> Unit raise CliError {
-  ensure_project_files_absent(project_dir, files)
+  self.ensure_files_absent(files)
   for file in files {
     write_new_string_file(
-      project_file_path(project_dir, file.filename),
+      project_file_path(self.project_dir, file.filename),
       file.content,
     )
   }
 }
 
 ///|
-async fn ensure_project_files_absent(
-  project_dir : String,
+async fn ProjectTarget::ensure_files_absent(
+  self : ProjectTarget,
   files : ArrayView[ProjectFile],
 ) -> Unit raise CliError {
   for file in files {
-    let file_path = project_file_path(project_dir, file.filename)
+    let file_path = project_file_path(self.project_dir, file.filename)
     guard !path_exists(file_path) else {
       raise CliError("file already exists: \{file_path}")
     }

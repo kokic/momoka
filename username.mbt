@@ -29,7 +29,7 @@ async fn ensure_username_with_preferred() -> UserPreferences raise CliError {
   }
   let preferred_dir = preferred_dir_path(home)
   let preferred_file = preferred_file_path(home)
-  let preferred = load_preferred_config(preferred_file)
+  let preferred = PreferredConfig::load(preferred_file)
   guard preferred.username is Some(username) else {
     ensure_dir(preferred_dir)
     let prompted_username = prompt_username(MAX_USERNAME_RETRIES)
@@ -37,7 +37,7 @@ async fn ensure_username_with_preferred() -> UserPreferences raise CliError {
       ..preferred,
       username: Some(prompted_username),
     }
-    save_preferred_config(preferred_file, updated_preferred)
+    updated_preferred.save(preferred_file)
     { username: prompted_username, preferred: updated_preferred, }
   }
   UserPreferences::{ username, preferred, }

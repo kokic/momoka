@@ -4,7 +4,7 @@ async fn main {
     [_, .. args] => args
     [] => []
   }
-  try run(args) catch {
+  try CliRequest::parse(args).execute() catch {
     CliError(message) => {
       @stdio.stderr..write(message).write("\n")
       @sys.exit(1)
@@ -15,9 +15,9 @@ async fn main {
 }
 
 ///|
-async fn run(args : ArrayView[String]) -> String raise CliError {
-  match parse_cli_args(args) {
-    Project(config) => run_project_request(config)
+async fn CliRequest::execute(self : CliRequest) -> String raise CliError {
+  match self {
+    Project(config) => config.execute()
     Upgrade(path) => run_upgrade_request(path)
     Preferences(Configure) => configure_preferred_defaults()
     Preferences(Show) => show_preferred_defaults()
@@ -25,31 +25,30 @@ async fn run(args : ArrayView[String]) -> String raise CliError {
 }
 
 ///|
-async fn run_project_request(config : CliConfig) -> String raise CliError {
-  let target = validate_project_target(config.location)
+async fn CliConfig::execute(self : CliConfig) -> String raise CliError {
+  let target = self.location.validate()
   let user = ensure_username_with_preferred()
   match target.mode {
     Create => ensure_dir_recursive(target.project_dir)
     Initialization => ()
   }
-  let settings = project_settings(config.overrides, user.preferred)
-  let files = render_project_files(target.project_dir, user.username, settings)
-  write_project_files(target.project_dir, files)
-  target.mode.success_message(target.project_dir, files)
+  let settings = self.overrides.resolve(user.preferred)
+  let files = target.render_files(user.username, settings)
+  target.write_files(files)
+  target.success_message(files)
 }
 
 ///|
-fn ProjectMode::success_message(
-  mode : ProjectMode,
-  project_dir : String,
+fn ProjectTarget::success_message(
+  self : ProjectTarget,
   files : ArrayView[ProjectFile],
 ) -> String {
-  let action = match mode {
+  let action = match self.mode {
     Create => "created and initialized"
     Initialization => "initialized"
   }
   let file_names = files.map(f => f.filename).map(emph).join(", ")
-  "\{action} \{file_names} in \{emph(project_dir)}"
+  "\{action} \{file_names} in \{emph(self.project_dir)}"
 }
 
 ///|

@@ -74,7 +74,9 @@ fn matched_value(matches : @argparse.Matches, value_id : String) -> String? {
 }
 
 ///|
-fn project_overrides(matches : @argparse.Matches) -> ProjectOverrides {
+fn ProjectOverrides::from_matches(
+  matches : @argparse.Matches,
+) -> ProjectOverrides {
   {
     license: matched_value(matches, "license"),
     host: matched_value(matches, "host"),
@@ -89,7 +91,7 @@ fn decode_new_request(matches : @argparse.Matches) -> CliRequest raise CliError 
   }
   Project({
     location: { path, mode: Create, },
-    overrides: project_overrides(matches),
+    overrides: ProjectOverrides::from_matches(matches),
   })
 }
 
@@ -100,7 +102,7 @@ fn decode_init_request(matches : @argparse.Matches) -> CliRequest {
       path: matched_value(matches, "path").unwrap_or("."),
       mode: Initialization,
     },
-    overrides: project_overrides(matches),
+    overrides: ProjectOverrides::from_matches(matches),
   })
 }
 
@@ -127,7 +129,7 @@ fn Subcommand::decode(
 }
 
 ///|
-fn parse_cli_args(args : ArrayView[String]) -> CliRequest raise CliError {
+fn CliRequest::parse(args : ArrayView[String]) -> CliRequest raise CliError {
   let command = @argparse.Command(
     "momoka",
     version=VERSION,
@@ -137,7 +139,7 @@ fn parse_cli_args(args : ArrayView[String]) -> CliRequest raise CliError {
     subcommand_required=true,
   )
 
-  decode_cli_matches(
+  CliRequest::from_matches(
     @argparse.Command::parse(command, argv=args) catch {
       err => raise CliError("\{err}")
     },
@@ -145,7 +147,9 @@ fn parse_cli_args(args : ArrayView[String]) -> CliRequest raise CliError {
 }
 
 ///|
-fn decode_cli_matches(matches : @argparse.Matches) -> CliRequest raise CliError {
+fn CliRequest::from_matches(
+  matches : @argparse.Matches,
+) -> CliRequest raise CliError {
   guard! matches.subcommand is Some((name, submatches))
   guard! Subcommand::from_name(name) is Some(command)
   command.decode(submatches)

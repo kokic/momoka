@@ -48,13 +48,13 @@ async fn configure_preferred_defaults() -> String raise CliError {
   let preferred_dir = preferred_dir_path(home)
   ensure_dir(preferred_dir)
   let preferred_file = preferred_file_path(home)
-  let preferred = load_preferred_config(preferred_file)
+  let preferred = PreferredConfig::load(preferred_file)
 
   println("configure preferred defaults")
   println("leave input empty to keep existing preference")
 
   let updated_preferred = preferred.interactive_prompt()
-  save_preferred_config(preferred_file, updated_preferred)
+  updated_preferred.save(preferred_file)
   "updated preferences in \{preferred_file}"
 }
 
@@ -64,7 +64,7 @@ async fn show_preferred_defaults() -> String raise CliError {
     raise CliError("cannot locate home directory from HOME/USERPROFILE")
   }
   let preferred_file = preferred_file_path(home)
-  let preferred = load_preferred_config(preferred_file)
+  let preferred = PreferredConfig::load(preferred_file)
   let license = preferred_display_value(preferred.license, DEFAULT_LICENSE)
   let host = preferred_display_value(preferred.host, DEFAULT_HOST)
   let preferred_target = preferred_display_value(

@@ -85,7 +85,7 @@ fn push_string_field(
 }
 
 ///|
-async fn load_preferred_config(
+async fn PreferredConfig::load(
   preferred_file : String,
 ) -> PreferredConfig raise CliError {
   guard path_exists(preferred_file) else { PreferredConfig::empty() }
@@ -105,9 +105,9 @@ async fn load_preferred_config(
 }
 
 ///|
-async fn save_preferred_config(
+async fn PreferredConfig::save(
+  self : PreferredConfig,
   preferred_file : String,
-  preferred : PreferredConfig,
 ) -> Unit raise CliError {
-  write_or_truncate_string_file(preferred_file, preferred.to_content())
+  write_or_truncate_string_file(preferred_file, self.to_content())
 }
