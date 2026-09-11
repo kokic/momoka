@@ -12,9 +12,6 @@ const DEFAULT_HOST : String = "github.com"
 const DEFAULT_TARGET : String = "native"
 
 ///|
-const NEW_COMMAND : String = "new"
-
-///|
 const INIT_COMMAND : String = "init"
 
 ///|
@@ -62,24 +59,45 @@ priv enum CliRequest {
 }
 
 ///|
+let about_newline_indent : String = " ".repeat(27)
+
+///|
 fn project_options() -> Array[@argparse.OptionArg] {
   [
     @argparse.OptionArg(
       "license",
       short='l',
-      about="License for moon.mod [default: prefs or \{DEFAULT_LICENSE}]. Example: Apache-2.0, GPL-3.0, MIT, BSD-3-Clause, CC0-1.0, EPL-2.0, AGPL-3.0, LGPL-3.0, MPL-2.0,  Unlicense, etc.",
+      about=(
+        $|License for moon.mod [default: prefs or \{DEFAULT_LICENSE}]. 
+        $|
+        $|\{about_newline_indent}Example: Apache-2.0, GPL-3.0, MIT, BSD-3-Clause, CC0-1.0, EPL-2.0, AGPL-3.0, LGPL-3.0, MPL-2.0,  Unlicense, etc.
+        $|
+      ),
     ),
     @argparse.OptionArg(
       "host",
-      about="Repository hosting domain [default: prefs or \{DEFAULT_HOST}]. Example: github.com, gitlab.com, codeberg.org, sourcehut.org, tangled.org, etc.",
+      about=(
+        $|Repository hosting domain [default: prefs or \{DEFAULT_HOST}].
+        $| 
+        $|\{about_newline_indent}Example: github.com, gitlab.com, codeberg.org, sourcehut.org, tangled.org, etc.
+        $|
+      ),
     ),
     @argparse.OptionArg(
       "target",
       short='t',
-      about="Preferred target [default: prefs or \{DEFAULT_TARGET}]. Example: wasm, wasm-gc, js, native",
+      about=(
+        $|Preferred target [default: prefs or \{DEFAULT_TARGET}]. 
+        $|
+        $|\{about_newline_indent}Example: wasm, wasm-gc, js, native.
+        $|
+      ),
     ),
   ]
 }
+
+///|
+const NEW_COMMAND : String = "new"
 
 ///|
 fn new_command() -> @argparse.Command {
