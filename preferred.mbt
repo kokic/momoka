@@ -17,26 +17,8 @@ priv struct PreferredConfig {
 }
 
 ///|
-priv enum PreferredKey {
-  UsernameField
-  LicenseField
-  HostField
-  TargetField
-}
-
-///|
 fn PreferredConfig::empty() -> PreferredConfig {
   { username: None, license: None, host: None, preferred_target: None, }
-}
-
-///|
-fn PreferredKey::name(self : PreferredKey) -> String {
-  match self {
-    UsernameField => "username"
-    LicenseField => "license"
-    HostField => "host"
-    TargetField => "preferred_target"
-  }
 }
 
 ///|
@@ -48,39 +30,37 @@ fn PreferredConfig::parse(content : String) -> PreferredConfig raise CliError {
     raise CliError("expected preferences JSON object")
   }
   {
-    username: string_field(obj, UsernameField),
-    license: string_field(obj, LicenseField),
-    host: string_field(obj, HostField),
-    preferred_target: string_field(obj, TargetField),
+    username: string_field(obj, "username"),
+    license: string_field(obj, "license"),
+    host: string_field(obj, "host"),
+    preferred_target: string_field(obj, "preferred_target"),
   }
 }
 
 ///|
-fn string_field(obj : Map[String, Json], key : PreferredKey) -> String? {
-  match obj.get(key.name()) {
-    Some(String(value)) => Some(value)
-    _ => None
-  }
+fn string_field(obj : Map[String, Json], key : String) -> String? {
+  guard obj.get(key) is Some(String(value)) else { None }
+  Some(value)
 }
 
 ///|
 fn PreferredConfig::to_content(self : PreferredConfig) -> String {
   let obj : Map[String, Json] = Map([])
-  push_string_field(obj, UsernameField, self.username)
-  push_string_field(obj, LicenseField, self.license)
-  push_string_field(obj, HostField, self.host)
-  push_string_field(obj, TargetField, self.preferred_target)
+  push_string_field(obj, "username", self.username)
+  push_string_field(obj, "license", self.license)
+  push_string_field(obj, "host", self.host)
+  push_string_field(obj, "preferred_target", self.preferred_target)
   Json::object(obj).stringify(indent=2)
 }
 
 ///|
 fn push_string_field(
   obj : Map[String, Json],
-  key : PreferredKey,
+  key : String,
   value : String?,
 ) -> Unit {
   if value is Some(value) {
-    obj[key.name()] = Json::string(value)
+    obj[key] = Json::string(value)
   }
 }
 
@@ -109,5 +89,15 @@ async fn PreferredConfig::save(
   self : PreferredConfig,
   preferred_file : String,
 ) -> Unit raise CliError {
+  ensure_dir(@path.Path::dirname(preferred_file).to_string())
   write_or_truncate_string_file(preferred_file, self.to_content())
+}
+
+///|
+async fn load_current_preferences() -> (String, PreferredConfig) raise CliError {
+  guard home_dir() is Some(home) else {
+    raise CliError("cannot locate home directory from HOME/USERPROFILE")
+  }
+  let preferred_file = preferred_file_path(home)
+  (preferred_file, PreferredConfig::load(preferred_file))
 }

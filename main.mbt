@@ -17,8 +17,8 @@ async fn CliRequest::execute(self : CliRequest) -> Unit raise CliError {
   match self {
     Project(config) => config.execute()
     Upgrade(path) => run_upgrade_request(path)
-    Stable => run_install_request(process=install_stable)
-    Nightly => run_install_request(process=install_nightly)
+    Stable => run_install_request(nightly=false)
+    Nightly => run_install_request(nightly=true)
     Preferences(Configure) => configure_preferred_defaults()
     Preferences(Show) => show_preferred_defaults()
   }

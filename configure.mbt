@@ -42,13 +42,7 @@ async fn PreferredConfig::interactive_prompt(
 
 ///|
 async fn configure_preferred_defaults() -> Unit raise CliError {
-  guard home_dir() is Some(home) else {
-    raise CliError("cannot locate home directory from HOME/USERPROFILE")
-  }
-  let preferred_dir = preferred_dir_path(home)
-  ensure_dir(preferred_dir)
-  let preferred_file = preferred_file_path(home)
-  let preferred = PreferredConfig::load(preferred_file)
+  let (preferred_file, preferred) = load_current_preferences()
 
   println("configure preferred defaults")
   println("leave input empty to keep existing preference")
@@ -60,11 +54,7 @@ async fn configure_preferred_defaults() -> Unit raise CliError {
 
 ///|
 async fn show_preferred_defaults() -> Unit raise CliError {
-  guard home_dir() is Some(home) else {
-    raise CliError("cannot locate home directory from HOME/USERPROFILE")
-  }
-  let preferred_file = preferred_file_path(home)
-  let preferred = PreferredConfig::load(preferred_file)
+  let (preferred_file, preferred) = load_current_preferences()
   let license = preferred_display_value(preferred.license, DEFAULT_LICENSE)
   let host = preferred_display_value(preferred.host, DEFAULT_HOST)
   let preferred_target = preferred_display_value(

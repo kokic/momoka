@@ -24,14 +24,8 @@ priv struct UserPreferences {
 
 ///|
 async fn ensure_username_with_preferred() -> UserPreferences raise CliError {
-  guard home_dir() is Some(home) else {
-    raise CliError("cannot locate home directory from HOME/USERPROFILE")
-  }
-  let preferred_dir = preferred_dir_path(home)
-  let preferred_file = preferred_file_path(home)
-  let preferred = PreferredConfig::load(preferred_file)
+  let (preferred_file, preferred) = load_current_preferences()
   guard preferred.username is Some(username) else {
-    ensure_dir(preferred_dir)
     let prompted_username = prompt_username(MAX_USERNAME_RETRIES)
     let updated_preferred : PreferredConfig = {
       ..preferred,

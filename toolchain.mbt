@@ -1,8 +1,6 @@
 ///|
-async fn run_install_request(
-  process~ : async () -> Int raise Error,
-) -> Unit raise CliError {
-  let status = process() catch {
+async fn run_install_request(nightly~ : Bool) -> Unit raise CliError {
+  let status = install_toolchain(nightly~) catch {
     err => raise CliError("failed to run the MoonBit installer: \{err}")
   }
   guard status == 0 else {
@@ -11,39 +9,29 @@ async fn run_install_request(
 }
 
 ///|
-async fn install_stable() -> Int raise Error {
-  // curl -fsSL https://cli.moonbitlang.cn/install/unix.sh | bash
+async fn install_toolchain(nightly~ : Bool) -> Int raise Error {
+  let args = if nightly { " -s nightly" } else { "" }
   @process.run("bash", [
-    "-o", "pipefail", "-c", "curl -fsSL https://cli.moonbitlang.cn/install/unix.sh | bash",
+    "-o",
+    "pipefail",
+    "-c",
+    "curl -fsSL https://cli.moonbitlang.cn/install/unix.sh | bash\{args}",
   ])
 }
 
 ///|
 #cfg(platform="windows")
-async fn install_stable() -> Int raise Error {
-  // Set-ExecutionPolicy RemoteSigned -Scope CurrentUser; irm https://cli.moonbitlang.cn/install/powershell.ps1 | iex
-  @process.run("powershell", [
-    "-NoProfile", "-Command", "Set-ExecutionPolicy RemoteSigned -Scope CurrentUser; irm https://cli.moonbitlang.cn/install/powershell.ps1 | iex",
-  ])
-}
-
-///|
-async fn install_nightly() -> Int raise Error {
-  // curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash -s nightly
-  @process.run("bash", [
-    "-o", "pipefail", "-c", "curl -fsSL https://cli.moonbitlang.cn/install/unix.sh | bash -s nightly",
-  ])
-}
-
-///|
-#cfg(platform="windows")
-async fn install_nightly() -> Int raise Error {
-  // Set-ExecutionPolicy RemoteSigned -Scope CurrentUser; $env:MOONBIT_INSTALL_VERSION="nightly"; irm https://cli.moonbitlang.cn/install/powershell.ps1 | iex
+async fn install_toolchain(nightly~ : Bool) -> Int raise Error {
+  let version = if nightly {
+    (
+      #|$env:MOONBIT_INSTALL_VERSION="nightly";
+    )
+  } else {
+    ""
+  }
   @process.run("powershell", [
     "-NoProfile",
     "-Command",
-    (
-      #|Set-ExecutionPolicy RemoteSigned -Scope CurrentUser; $env:MOONBIT_INSTALL_VERSION="nightly"; irm https://cli.moonbitlang.cn/install/powershell.ps1 | iex
-    ),
+    "Set-ExecutionPolicy RemoteSigned -Scope CurrentUser; \{version} irm https://cli.moonbitlang.cn/install/powershell.ps1 | iex",
   ])
 }
