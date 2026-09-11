@@ -1,9 +1,7 @@
 ///|
 async fn read_line_from_stdin() -> String? raise CliError {
-  try @stdio.stdin.read_until("\n") catch {
+  @stdio.stdin.read_until("\n") catch {
     err => raise CliError("failed to read input from stdin: \{(err)}")
-  } noraise {
-    line => line
   }
 }
 
@@ -20,10 +18,8 @@ fn absolute_path(path : String) -> String raise CliError {
 
 ///|
 async fn path_exists(path : String) -> Bool raise CliError {
-  try @fs.exists(path) catch {
+  @fs.exists(path) catch {
     err => raise CliError("failed to check path \{path}: \{(err)}")
-  } noraise {
-    exists => exists
   }
 }
 
@@ -46,10 +42,8 @@ async fn write_new_string_file(
   guard !path_exists(path) else {
     raise CliError("file already exists: \{path}")
   }
-  try @fs.write_file(path, content, create_mode=CreateNew) catch {
+  @fs.write_file(path, content, create_mode=CreateNew) catch {
     err => raise CliError("failed to write file \{path}: \{(err)}")
-  } noraise {
-    _ => ()
   }
 }
 
@@ -58,10 +52,8 @@ async fn write_or_truncate_string_file(
   path : String,
   content : String,
 ) -> Unit raise CliError {
-  try @fs.write_file(path, content, create_mode=CreateOrTruncate) catch {
+  @fs.write_file(path, content, create_mode=CreateOrTruncate) catch {
     err => raise CliError("failed to write file \{path}: \{(err)}")
-  } noraise {
-    _ => ()
   }
 }
 
@@ -89,10 +81,8 @@ async fn verify_is_directory(path : String) -> Unit raise CliError {
 ///|
 async fn ensure_dir(path : String) -> Unit raise CliError {
   guard !path_exists(path) else { verify_is_directory(path) }
-  try @fs.mkdir(path) catch {
+  @fs.mkdir(path) catch {
     err => raise CliError("failed to create directory \{path}: \{(err)}")
-  } noraise {
-    _ => ()
   }
 }
 

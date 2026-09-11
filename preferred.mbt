@@ -41,10 +41,8 @@ fn PreferredKey::name(self : PreferredKey) -> String {
 
 ///|
 fn PreferredConfig::parse(content : String) -> PreferredConfig raise CliError {
-  let json = try @json.parse(content) catch {
+  let json = @json.parse(content) catch {
     err => raise CliError("failed to parse preferences JSON: \{err}")
-  } noraise {
-    json => json
   }
   guard json is Object(obj) else {
     raise CliError("expected preferences JSON object")
@@ -91,21 +89,17 @@ async fn load_preferred_config(
   preferred_file : String,
 ) -> PreferredConfig raise CliError {
   guard path_exists(preferred_file) else { PreferredConfig::empty() }
-  let content = try @fs.read_file(preferred_file) catch {
+  let content = @fs.read_file(preferred_file) catch {
     err =>
       raise CliError(
         "failed to read preferences \{preferred_file}: \{Repr(err)}",
       )
-  } noraise {
-    content => content
   }
-  let text = try content.text() catch {
+  let text = content.text() catch {
     err =>
       raise CliError(
         "failed to decode preferences \{preferred_file}: \{Repr(err)}",
       )
-  } noraise {
-    text => text
   }
   PreferredConfig::parse(text)
 }

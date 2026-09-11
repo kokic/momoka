@@ -32,10 +32,10 @@ priv struct ProjectFile {
 
 ///|
 async fn validate_project_target(
-  config : CliConfig,
+  location : ProjectLocation,
 ) -> ProjectTarget raise CliError {
-  let project_dir = absolute_path(config.location.path)
-  let target : ProjectTarget = { project_dir, mode: config.location.mode, }
+  let project_dir = absolute_path(location.path)
+  let target : ProjectTarget = { project_dir, mode: location.mode, }
   match target.mode {
     Create => ensure_new_project_target(target.project_dir)
     Initialization => ensure_existing_dir(target.project_dir)
@@ -62,55 +62,27 @@ fn module_name_from_project_dir(project_dir : String) -> String raise CliError {
 }
 
 ///|
-async fn bootstrap_project(
-  target : ProjectTarget,
-  config : CliConfig,
-  username : String,
-  preferred : PreferredConfig,
-) -> (String, Array[ProjectFile]) raise CliError {
-  match target.mode {
-    Create => ensure_dir_recursive(target.project_dir)
-    Initialization => ()
-  }
-  let files = render_project_files(
-    target.project_dir,
-    config.overrides,
-    username,
-    preferred,
-  )
-  write_project_files(target.project_dir, files)
-  (target.project_dir, files)
-}
-
-///|
 fn render_project_files(
   project_dir : String,
-  overrides : ProjectOverrides,
   username : String,
-  preferred : PreferredConfig,
+  settings : ProjectSettings,
 ) -> Array[ProjectFile] raise CliError {
-  let settings = project_settings(overrides, preferred)
   let module_name = module_name_from_project_dir(project_dir)
   [
-    register_project_file(
-      "moon.mod",
-      moon_mod_content(
+    {
+      filename: "moon.mod",
+      content: moon_mod_content(
         username~,
         module_name~,
         settings.license,
         settings.host,
         settings.preferred_target,
       ),
-    ),
-    register_project_file("moon.pkg", moon_pkg_content()),
-    register_project_file(".gitignore", gitignore_content()),
-    register_project_file(".gitattributes", gitattributes_content()),
+    },
+    { filename: "moon.pkg", content: moon_pkg_content(), },
+    { filename: ".gitignore", content: gitignore_content(), },
+    { filename: ".gitattributes", content: gitattributes_content(), },
   ]
-}
-
-///|
-fn register_project_file(filename : String, content : String) -> ProjectFile {
-  { filename, content, }
 }
 
 ///|

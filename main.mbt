@@ -16,12 +16,7 @@ async fn main {
 
 ///|
 async fn run(args : ArrayView[String]) -> String raise CliError {
-  handle_cli_request(parse_cli_args(args))
-}
-
-///|
-async fn handle_cli_request(request : CliRequest) -> String raise CliError {
-  match request {
+  match parse_cli_args(args) {
     Project(config) => run_project_request(config)
     Upgrade(path) => run_upgrade_request(path)
     Preferences(Configure) => configure_preferred_defaults()
@@ -31,34 +26,30 @@ async fn handle_cli_request(request : CliRequest) -> String raise CliError {
 
 ///|
 async fn run_project_request(config : CliConfig) -> String raise CliError {
-  let target = validate_project_target(config)
+  let target = validate_project_target(config.location)
   let user = ensure_username_with_preferred()
-  let (project_dir, files) = bootstrap_project(
-    target,
-    config,
-    user.username,
-    user.preferred,
-  )
-  config.location.mode.success_message(project_dir, files)
+  match target.mode {
+    Create => ensure_dir_recursive(target.project_dir)
+    Initialization => ()
+  }
+  let settings = project_settings(config.overrides, user.preferred)
+  let files = render_project_files(target.project_dir, user.username, settings)
+  write_project_files(target.project_dir, files)
+  target.mode.success_message(target.project_dir, files)
 }
 
 ///|
 fn ProjectMode::success_message(
-  self : ProjectMode,
+  mode : ProjectMode,
   project_dir : String,
   files : ArrayView[ProjectFile],
 ) -> String {
-  let action = self.action_text()
-  let file_names = files.map(f => f.filename).map(emph).join(", ")
-  "\{action} \{file_names} in \{emph(project_dir)}"
-}
-
-///|
-fn ProjectMode::action_text(self : ProjectMode) -> String {
-  match self {
+  let action = match mode {
     Create => "created and initialized"
     Initialization => "initialized"
   }
+  let file_names = files.map(f => f.filename).map(emph).join(", ")
+  "\{action} \{file_names} in \{emph(project_dir)}"
 }
 
 ///|
