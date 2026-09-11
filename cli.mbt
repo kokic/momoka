@@ -12,9 +12,6 @@ const DEFAULT_HOST : String = "github.com"
 const DEFAULT_TARGET : String = "native"
 
 ///|
-const CLI_NAME : String = "momoka"
-
-///|
 const NEW_COMMAND : String = "new"
 
 ///|
@@ -70,16 +67,16 @@ fn project_options() -> Array[@argparse.OptionArg] {
     @argparse.OptionArg(
       "license",
       short='l',
-      about="License for moon.mod [default: prefs or \{DEFAULT_LICENSE}].",
+      about="License for moon.mod [default: prefs or \{DEFAULT_LICENSE}]. Example: Apache-2.0, GPL-3.0, MIT, BSD-3-Clause, CC0-1.0, EPL-2.0, AGPL-3.0, LGPL-3.0, MPL-2.0,  Unlicense, etc.",
     ),
     @argparse.OptionArg(
       "host",
-      about="Repository hosting domain [default: prefs or \{DEFAULT_HOST}].",
+      about="Repository hosting domain [default: prefs or \{DEFAULT_HOST}]. Example: github.com, gitlab.com, codeberg.org, sourcehut.org, tangled.org, etc.",
     ),
     @argparse.OptionArg(
       "target",
       short='t',
-      about="Preferred target [default: prefs or \{DEFAULT_TARGET}].",
+      about="Preferred target [default: prefs or \{DEFAULT_TARGET}]. Example: wasm, wasm-gc, js, native",
     ),
   ]
 }
@@ -143,7 +140,7 @@ fn preferences_command() -> @argparse.Command {
 ///|
 fn cli_command() -> @argparse.Command {
   @argparse.Command(
-    CLI_NAME,
+    "momoka",
     version=VERSION,
     about="Create a minimal MoonBit module.",
     subcommands=[
