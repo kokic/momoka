@@ -29,6 +29,8 @@ priv enum PreferencesRequest {
 priv enum CliRequest {
   Project(CliConfig)
   Upgrade(String)
+  Stable
+  Nightly
   Preferences(PreferencesRequest)
 }
 
@@ -116,25 +118,22 @@ fn decode_preferences_request(matches : @argparse.Matches) -> CliRequest {
 }
 
 ///|
-fn Subcommand::decode(
-  self : Subcommand,
-  matches : @argparse.Matches,
-) -> CliRequest raise CliError {
-  match self {
-    Create => decode_new_request(matches)
-    Initialization => decode_init_request(matches)
-    Upgrade => Upgrade(matched_value(matches, "path").unwrap_or("."))
-    Config => decode_preferences_request(matches)
-  }
-}
-
-///|
 fn CliRequest::parse(args : ArrayView[String]) -> CliRequest raise CliError {
   let command = @argparse.Command(
     "momoka",
     version=VERSION,
     about="Create a minimal MoonBit module.",
-    subcommands=Subcommand::all().map(command => command.command()),
+    subcommands=[
+      new_command(),
+      init_command(),
+      upgrade_command(),
+      @argparse.Command("stable", about="Install the stable MoonBit toolchain."),
+      @argparse.Command(
+        "nightly",
+        about="Install the nightly MoonBit toolchain.",
+      ),
+      preferences_command(),
+    ],
     arg_required_else_help=true,
     subcommand_required=true,
   )
@@ -151,6 +150,13 @@ fn CliRequest::from_matches(
   matches : @argparse.Matches,
 ) -> CliRequest raise CliError {
   guard! matches.subcommand is Some((name, submatches))
-  guard! Subcommand::from_name(name) is Some(command)
-  command.decode(submatches)
+  match name {
+    "new" => decode_new_request(submatches)
+    "init" => decode_init_request(submatches)
+    "upgrade" => Upgrade(matched_value(submatches, "path").unwrap_or("."))
+    "stable" => Stable
+    "nightly" => Nightly
+    "cfg" => decode_preferences_request(submatches)
+    _ => raise CliError("unknown command: \{name}")
+  }
 }

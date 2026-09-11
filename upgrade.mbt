@@ -1,10 +1,10 @@
 ///|
-async fn run_upgrade_request(path : String) -> String raise CliError {
+async fn run_upgrade_request(path : String) -> Unit raise CliError {
   let project_dir = absolute_path(path)
   ensure_existing_dir(project_dir)
   let moon_mod_path = project_file_path(project_dir, "moon.mod")
   let mod_names = import_modules_from_moon_mod(moon_mod_path)
-  upgrade_project_modules(project_dir, mod_names)
+  println(upgrade_project_modules(project_dir, mod_names))
 }
 
 ///|

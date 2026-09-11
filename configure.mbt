@@ -41,7 +41,7 @@ async fn PreferredConfig::interactive_prompt(
 }
 
 ///|
-async fn configure_preferred_defaults() -> String raise CliError {
+async fn configure_preferred_defaults() -> Unit raise CliError {
   guard home_dir() is Some(home) else {
     raise CliError("cannot locate home directory from HOME/USERPROFILE")
   }
@@ -55,11 +55,11 @@ async fn configure_preferred_defaults() -> String raise CliError {
 
   let updated_preferred = preferred.interactive_prompt()
   updated_preferred.save(preferred_file)
-  "updated preferences in \{preferred_file}"
+  println("updated preferences in \{preferred_file}")
 }
 
 ///|
-async fn show_preferred_defaults() -> String raise CliError {
+async fn show_preferred_defaults() -> Unit raise CliError {
   guard home_dir() is Some(home) else {
     raise CliError("cannot locate home directory from HOME/USERPROFILE")
   }
@@ -71,11 +71,13 @@ async fn show_preferred_defaults() -> String raise CliError {
     preferred.preferred_target,
     DEFAULT_TARGET,
   )
-  (
-    $|current preferences
-    $|file: \{preferred_file}
-    $|license: \{license}
-    $|host: \{host}
-    $|target: \{preferred_target}
+  println(
+    (
+      $|current preferences
+      $|file: \{preferred_file}
+      $|license: \{license}
+      $|host: \{host}
+      $|target: \{preferred_target}
+    ),
   )
 }

@@ -4,28 +4,28 @@ async fn main {
     [_, .. args] => args
     [] => []
   }
-  try CliRequest::parse(args).execute() catch {
+  CliRequest::parse(args).execute() catch {
     CliError(message) => {
       @stdio.stderr..write(message).write("\n")
       @sys.exit(1)
     }
-  } noraise {
-    message => println(message)
   }
 }
 
 ///|
-async fn CliRequest::execute(self : CliRequest) -> String raise CliError {
+async fn CliRequest::execute(self : CliRequest) -> Unit raise CliError {
   match self {
     Project(config) => config.execute()
     Upgrade(path) => run_upgrade_request(path)
+    Stable => run_install_request(process=install_stable)
+    Nightly => run_install_request(process=install_nightly)
     Preferences(Configure) => configure_preferred_defaults()
     Preferences(Show) => show_preferred_defaults()
   }
 }
 
 ///|
-async fn CliConfig::execute(self : CliConfig) -> String raise CliError {
+async fn CliConfig::execute(self : CliConfig) -> Unit raise CliError {
   let target = self.location.validate()
   let user = ensure_username_with_preferred()
   match target.mode {
@@ -35,7 +35,7 @@ async fn CliConfig::execute(self : CliConfig) -> String raise CliError {
   let settings = self.overrides.resolve(user.preferred)
   let files = target.render_files(user.username, settings)
   target.write_files(files)
-  target.success_message(files)
+  println(target.success_message(files))
 }
 
 ///|

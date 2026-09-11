@@ -12,6 +12,9 @@ momoka init
 
 # upgrade all dependencies to their latest versions
 momoka upgrade
+
+# install the stable MoonBit toolchain
+momoka stable
 ```
 
 ## Help
@@ -25,6 +28,8 @@ Commands:
   new      Create a new MoonBit module in a new directory.
   init     Initialize a MoonBit module in an existing directory.
   upgrade  Upgrade all dependencies of the project to their latest versions.
+  stable   Install the stable MoonBit toolchain.
+  nightly  Install the nightly MoonBit toolchain.
   cfg      Configure default license / host / target, or print them.
   help     Print help for the subcommand(s).
 
