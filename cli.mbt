@@ -1,8 +1,4 @@
 ///|
-/// Also see: moon.mod - `version`
-pub const VERSION = "0.6.0"
-
-///|
 const DEFAULT_LICENSE : String = "AGPL-3.0"
 
 ///|
@@ -12,37 +8,15 @@ const DEFAULT_HOST : String = "github.com"
 const DEFAULT_TARGET : String = "native"
 
 ///|
-const INIT_COMMAND : String = "init"
-
-///|
-const UPGRADE_COMMAND : String = "upgrade"
-
-///|
-const CFG_COMMAND : String = "cfg"
-
-///|
 priv struct ProjectLocation {
   path : String
   mode : ProjectMode
 }
 
 ///|
-priv struct ProjectOverrides {
-  license : String?
-  host : String?
-  preferred_target : String?
-}
-
-///|
 priv struct CliConfig {
   location : ProjectLocation
   overrides : ProjectOverrides
-}
-
-///|
-priv enum ProjectMode {
-  Create
-  Init
 }
 
 ///|
@@ -62,115 +36,37 @@ priv enum CliRequest {
 let about_newline_indent : String = " ".repeat(27)
 
 ///|
-fn project_options() -> Array[@argparse.OptionArg] {
-  [
-    @argparse.OptionArg(
-      "license",
-      short='l',
-      about=(
-        $|License for moon.mod [default: prefs or \{DEFAULT_LICENSE}]. 
-        $|
-        $|\{about_newline_indent}Example: Apache-2.0, GPL-3.0, MIT, BSD-3-Clause, CC0-1.0, EPL-2.0, AGPL-3.0, LGPL-3.0, MPL-2.0,  Unlicense, etc.
-        $|
-      ),
+let project_options : Array[@argparse.OptionArg] = [
+  @argparse.OptionArg(
+    "license",
+    short='l',
+    about=(
+      $|License for moon.mod [default: prefs or \{DEFAULT_LICENSE}]. 
+      $|
+      $|\{about_newline_indent}Example: Apache-2.0, GPL-3.0, MIT, BSD-3-Clause, CC0-1.0, EPL-2.0, AGPL-3.0, LGPL-3.0, MPL-2.0,  Unlicense, etc.
+      $|
     ),
-    @argparse.OptionArg(
-      "host",
-      about=(
-        $|Repository hosting domain [default: prefs or \{DEFAULT_HOST}].
-        $| 
-        $|\{about_newline_indent}Example: github.com, gitlab.com, codeberg.org, sourcehut.org, tangled.org, etc.
-        $|
-      ),
+  ),
+  @argparse.OptionArg(
+    "host",
+    about=(
+      $|Repository hosting domain [default: prefs or \{DEFAULT_HOST}].
+      $| 
+      $|\{about_newline_indent}Example: github.com, gitlab.com, codeberg.org, sourcehut.org, tangled.org, etc.
+      $|
     ),
-    @argparse.OptionArg(
-      "target",
-      short='t',
-      about=(
-        $|Preferred target [default: prefs or \{DEFAULT_TARGET}]. 
-        $|
-        $|\{about_newline_indent}Example: wasm, wasm-gc, js, native.
-        $|
-      ),
+  ),
+  @argparse.OptionArg(
+    "target",
+    short='t',
+    about=(
+      $|Preferred target [default: prefs or \{DEFAULT_TARGET}]. 
+      $|
+      $|\{about_newline_indent}Example: wasm, wasm-gc, js, native.
+      $|
     ),
-  ]
-}
-
-///|
-const NEW_COMMAND : String = "new"
-
-///|
-fn new_command() -> @argparse.Command {
-  @argparse.Command(
-    NEW_COMMAND,
-    about="Create a new MoonBit module in a new directory.",
-    options=project_options(),
-    positionals=[
-      @argparse.PositionArg(
-        "path",
-        about="Project directory path to create.",
-        num_args=@argparse.ValueRange::single(),
-      ),
-    ],
-  )
-}
-
-///|
-fn init_command() -> @argparse.Command {
-  @argparse.Command(
-    INIT_COMMAND,
-    about="Initialize a MoonBit module in an existing directory.",
-    options=project_options(),
-    positionals=[
-      @argparse.PositionArg(
-        "path",
-        about="Project directory path [default: current directory].",
-      ),
-    ],
-  )
-}
-
-///|
-fn upgrade_command() -> @argparse.Command {
-  @argparse.Command(
-    UPGRADE_COMMAND,
-    about="Upgrade all dependencies of the project to their latest versions.",
-    positionals=[
-      @argparse.PositionArg(
-        "path",
-        about="Project directory path [default: current directory].",
-      ),
-    ],
-  )
-}
-
-///|
-fn preferences_command() -> @argparse.Command {
-  @argparse.Command(
-    CFG_COMMAND,
-    about="Configure default license / host / target, or print them.",
-    flags=[
-      @argparse.FlagArg("show", long="show", about="Print current preferences."),
-    ],
-  )
-}
-
-///|
-fn cli_command() -> @argparse.Command {
-  @argparse.Command(
-    "momoka",
-    version=VERSION,
-    about="Create a minimal MoonBit module.",
-    subcommands=[
-      new_command(),
-      init_command(),
-      upgrade_command(),
-      preferences_command(),
-    ],
-    arg_required_else_help=true,
-    subcommand_required=true,
-  )
-}
+  ),
+]
 
 ///|
 fn matched_value(matches : @argparse.Matches, value_id : String) -> String? {
@@ -202,7 +98,7 @@ fn decode_init_request(matches : @argparse.Matches) -> CliRequest {
   Project({
     location: {
       path: matched_value(matches, "path").unwrap_or("."),
-      mode: Init,
+      mode: Initialization,
     },
     overrides: project_overrides(matches),
   })
@@ -218,30 +114,39 @@ fn decode_preferences_request(matches : @argparse.Matches) -> CliRequest {
 }
 
 ///|
-fn decode_subcommand(
-  name : String,
+fn Subcommand::decode(
+  self : Subcommand,
   matches : @argparse.Matches,
 ) -> CliRequest raise CliError {
-  match name {
-    NEW_COMMAND => decode_new_request(matches)
-    INIT_COMMAND => decode_init_request(matches)
-    UPGRADE_COMMAND => Upgrade(matched_value(matches, "path").unwrap_or("."))
-    CFG_COMMAND => decode_preferences_request(matches)
-    _ => panic()
+  match self {
+    Create => decode_new_request(matches)
+    Initialization => decode_init_request(matches)
+    Upgrade => Upgrade(matched_value(matches, "path").unwrap_or("."))
+    Config => decode_preferences_request(matches)
   }
-}
-
-///|
-fn decode_cli_matches(matches : @argparse.Matches) -> CliRequest raise CliError {
-  guard matches.subcommand is Some((name, submatches)) else { panic() }
-  decode_subcommand(name, submatches)
 }
 
 ///|
 fn parse_cli_args(args : ArrayView[String]) -> CliRequest raise CliError {
-  try @argparse.Command::parse(cli_command(), argv=args) catch {
-    err => raise CliError("\{err}")
-  } noraise {
-    matches => decode_cli_matches(matches)
-  }
+  let command = @argparse.Command(
+    "momoka",
+    version=VERSION,
+    about="Create a minimal MoonBit module.",
+    subcommands=Subcommand::all().map(command => command.command()),
+    arg_required_else_help=true,
+    subcommand_required=true,
+  )
+
+  decode_cli_matches(
+    @argparse.Command::parse(command, argv=args) catch {
+      err => raise CliError("\{err}")
+    },
+  )
+}
+
+///|
+fn decode_cli_matches(matches : @argparse.Matches) -> CliRequest raise CliError {
+  guard! matches.subcommand is Some((name, submatches))
+  guard! Subcommand::from_name(name) is Some(command)
+  command.decode(submatches)
 }

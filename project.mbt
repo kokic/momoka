@@ -1,4 +1,17 @@
 ///|
+priv struct ProjectOverrides {
+  license : String?
+  host : String?
+  preferred_target : String?
+}
+
+///|
+priv enum ProjectMode {
+  Create
+  Initialization
+}
+
+///|
 priv struct ProjectTarget {
   project_dir : String
   mode : ProjectMode
@@ -25,7 +38,7 @@ async fn validate_project_target(
   let target : ProjectTarget = { project_dir, mode: config.location.mode, }
   match target.mode {
     Create => ensure_new_project_target(target.project_dir)
-    Init => ensure_existing_dir(target.project_dir)
+    Initialization => ensure_existing_dir(target.project_dir)
   }
   target
 }
@@ -57,7 +70,7 @@ async fn bootstrap_project(
 ) -> (String, Array[ProjectFile]) raise CliError {
   match target.mode {
     Create => ensure_dir_recursive(target.project_dir)
-    Init => ()
+    Initialization => ()
   }
   let files = render_project_files(
     target.project_dir,

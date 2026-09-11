@@ -57,7 +57,7 @@ fn ProjectMode::success_message(
 fn ProjectMode::action_text(self : ProjectMode) -> String {
   match self {
     Create => "created and initialized"
-    Init => "initialized"
+    Initialization => "initialized"
   }
 }
 
