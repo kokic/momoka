@@ -15,6 +15,9 @@ momoka upgrade
 
 # install the stable MoonBit toolchain
 momoka stable
+
+# select a local Git branch by number and check it out
+momoka branch
 ```
 
 ## Help
@@ -31,6 +34,7 @@ Commands:
   stable   Install the stable MoonBit toolchain.
   nightly  Install the nightly MoonBit toolchain.
   cfg      Configure default license / host / target, or print them.
+  branch   Select and check out a local Git branch.
   help     Print help for the subcommand(s).
 
 Options:
