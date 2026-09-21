@@ -24,6 +24,7 @@ fn moon_mod_content(
     $|description = ""
     $|
     $|preferred_target = "\{preferred_target}"
+    $|
   )
 }
 
@@ -55,6 +56,7 @@ test "moon_mod_content uses suffixless moon.mod format" {
       #|description = ""
       #|
       #|preferred_target = "js"
+      #|
     ),
   )
 }

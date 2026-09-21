@@ -82,6 +82,7 @@ fn ProjectTarget::render_files(
     },
     { filename: "moon.pkg", content: moon_pkg_content(), },
     { filename: ".gitignore", content: gitignore_content(), },
+    { filename: ".moonignore", content: gitignore_content(), },
     { filename: ".gitattributes", content: gitattributes_content(), },
   ]
 }

@@ -4,12 +4,7 @@ async fn main {
     [_, .. args] => args
     [] => []
   }
-  CliRequest::parse(args).execute() catch {
-    CliError(message) => {
-      @stdio.stderr..write(message).write("\n")
-      @sys.exit(1)
-    }
-  }
+  CliRequest::parse(args).execute()
 }
 
 ///|
