@@ -10,6 +10,10 @@ momoka new your-great-project
 # or, cd <your-existing-project>
 momoka init
 
+# override project defaults for this invocation
+momoka new your-great-project --username alice --license MIT --host gitlab.com --target js
+momoka init --username alice
+
 # upgrade all dependencies to their latest versions
 momoka upgrade
 
@@ -43,5 +47,9 @@ Options:
 ```
 
 Use `momoka help <command>` (or `momoka <command> --help`) for subcommand
-details. For example, `momoka new --help` shows the `--license`, `--host`,
-and `--target` options used to override the defaults stored via `momoka cfg`.
+details. Both `new` and `init` support `--username` (`-u`), `--license` (`-l`),
+`--host`, and `--target` (`-t`). These options override saved preferences for
+the current invocation without changing them. License, host, and target fall
+back to `AGPL-3.0`, `github.com`, and `native` when no preference is saved.
+Without `--username` or a saved username, Momoka prompts for one and saves it
+for future use. Use `momoka cfg` to configure default license, host, and target.

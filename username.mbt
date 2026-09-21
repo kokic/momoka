@@ -23,8 +23,17 @@ priv struct UserPreferences {
 }
 
 ///|
-async fn ensure_username_with_preferred() -> UserPreferences raise CliError {
+async fn ensure_username_with_preferred(
+  explicit_username : String?,
+) -> UserPreferences raise CliError {
   let (preferred_file, preferred) = load_current_preferences()
+  if explicit_username is Some(value) {
+    let username = value.trim().to_owned()
+    guard !username.is_empty() else {
+      raise CliError("username cannot be empty")
+    }
+    return { username, preferred, }
+  }
   guard preferred.username is Some(username) else {
     let prompted_username = prompt_username(MAX_USERNAME_RETRIES)
     let updated_preferred : PreferredConfig = {

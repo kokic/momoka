@@ -1,5 +1,6 @@
 ///|
 priv struct ProjectOverrides {
+  username : String?
   license : String?
   host : String?
   preferred_target : String?

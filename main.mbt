@@ -28,7 +28,7 @@ async fn CliRequest::execute(self : CliRequest) -> Unit raise CliError {
 ///|
 async fn CliConfig::execute(self : CliConfig) -> Unit raise CliError {
   let target = self.location.validate()
-  let user = ensure_username_with_preferred()
+  let user = ensure_username_with_preferred(self.overrides.username)
   match target.mode {
     Create => ensure_dir_recursive(target.project_dir)
     Initialization => ()

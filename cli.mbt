@@ -41,6 +41,11 @@ let about_newline_indent : String = " ".repeat(27)
 ///|
 let project_options : Array[@argparse.OptionArg] = [
   @argparse.OptionArg(
+    "username",
+    short='u',
+    about="MoonBit username for module name and repository [default: prefs or prompt].",
+  ),
+  @argparse.OptionArg(
     "license",
     short='l',
     about=(
@@ -81,6 +86,7 @@ fn ProjectOverrides::from_matches(
   matches : @argparse.Matches,
 ) -> ProjectOverrides {
   {
+    username: matched_value(matches, "username"),
     license: matched_value(matches, "license"),
     host: matched_value(matches, "host"),
     preferred_target: matched_value(matches, "target"),
