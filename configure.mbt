@@ -26,6 +26,11 @@ fn preferred_display_value(
 async fn PreferredConfig::interactive_prompt(
   self : PreferredConfig,
 ) -> PreferredConfig raise CliError {
+  let username = prompt_preferred_field(
+    "default username",
+    self.username,
+    "prompt on new/init",
+  )
   let license = prompt_preferred_field(
     "default license",
     self.license,
@@ -37,7 +42,7 @@ async fn PreferredConfig::interactive_prompt(
     self.preferred_target,
     DEFAULT_TARGET,
   )
-  { username: self.username, license, host, preferred_target, }
+  { username, license, host, preferred_target, }
 }
 
 ///|
@@ -55,6 +60,10 @@ async fn configure_preferred_defaults() -> Unit raise CliError {
 ///|
 async fn show_preferred_defaults() -> Unit raise CliError {
   let (preferred_file, preferred) = load_current_preferences()
+  let username = preferred_display_value(
+    preferred.username,
+    "prompt on new/init",
+  )
   let license = preferred_display_value(preferred.license, DEFAULT_LICENSE)
   let host = preferred_display_value(preferred.host, DEFAULT_HOST)
   let preferred_target = preferred_display_value(
@@ -65,6 +74,7 @@ async fn show_preferred_defaults() -> Unit raise CliError {
     (
       $|current preferences
       $|file: \{preferred_file}
+      $|username: \{username}
       $|license: \{license}
       $|host: \{host}
       $|target: \{preferred_target}

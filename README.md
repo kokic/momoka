@@ -37,7 +37,7 @@ Commands:
   upgrade  Upgrade all dependencies of the project to their latest versions.
   stable   Install the stable MoonBit toolchain.
   nightly  Install the nightly MoonBit toolchain.
-  cfg      Configure default license / host / target, or print them.
+  cfg      Configure default username / license / host / target, or print them.
   branch   Select and check out a local Git branch.
   help     Print help for the subcommand(s).
 
@@ -52,4 +52,7 @@ details. Both `new` and `init` support `--username` (`-u`), `--license` (`-l`),
 the current invocation without changing them. License, host, and target fall
 back to `AGPL-3.0`, `github.com`, and `native` when no preference is saved.
 Without `--username` or a saved username, Momoka prompts for one and saves it
-for future use. Use `momoka cfg` to configure default license, host, and target.
+for future use. Use `momoka cfg` to configure default username, license, host,
+and target; press Enter to keep an existing value. Use `momoka cfg --show` to
+display all saved preferences. An unset username will be prompted for on
+`new`/`init` unless `--username` is supplied.
