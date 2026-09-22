@@ -1,0 +1,12 @@
+import {
+  "moonbitlang/core/env",
+  "moonbitlang/core/argparse",
+  "moonbitlang/async",
+  "moonbitlang/async/fs",
+  "moonbitlang/x/path",
+  "kokic/momoka-core" @core,
+}
+
+supported_targets = "+wasm"
+
+pkgtype(kind: "executable")

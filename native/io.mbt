@@ -1,30 +1,30 @@
 ///|
-async fn read_line_from_stdin() -> String? raise CliError {
+async fn read_line_from_stdin() -> String? raise @core.CliError {
   @stdio.stdin.read_until("\n") catch {
-    err => raise CliError("failed to read input from stdin: \{(err)}")
+    err => raise @core.cli_error("failed to read input from stdin: \{(err)}")
   }
 }
 
 ///|
-fn absolute_path(path : String) -> String raise CliError {
+fn absolute_path(path : String) -> String raise @core.CliError {
   guard !@path.Path::is_absolute(path) else {
     @path.Path::normalize(path).to_string()
   }
   guard @env.current_dir() is Some(cwd) else {
-    raise CliError("cannot locate current directory")
+    raise @core.cli_error("cannot locate current directory")
   }
   @path.Path::normalize(@path.Path::join(cwd, path)).to_string()
 }
 
 ///|
-async fn path_exists(path : String) -> Bool raise CliError {
+async fn path_exists(path : String) -> Bool raise @core.CliError {
   @fs.exists(path) catch {
-    err => raise CliError("failed to check path \{path}: \{(err)}")
+    err => raise @core.cli_error("failed to check path \{path}: \{(err)}")
   }
 }
 
 ///|
-async fn ensure_dir_recursive(path : String) -> Unit raise CliError {
+async fn ensure_dir_recursive(path : String) -> Unit raise @core.CliError {
   guard !path.is_empty() else { () }
   guard !path_exists(path) else { ensure_dir(path) }
   let parent = @path.Path::dirname(path).to_string()
@@ -38,12 +38,12 @@ async fn ensure_dir_recursive(path : String) -> Unit raise CliError {
 async fn write_new_string_file(
   path : String,
   content : String,
-) -> Unit raise CliError {
+) -> Unit raise @core.CliError {
   guard !path_exists(path) else {
-    raise CliError("file already exists: \{path}")
+    raise @core.cli_error("file already exists: \{path}")
   }
   @fs.write_file(path, content, create_mode=CreateNew) catch {
-    err => raise CliError("failed to write file \{path}: \{(err)}")
+    err => raise @core.cli_error("failed to write file \{path}: \{(err)}")
   }
 }
 
@@ -51,9 +51,9 @@ async fn write_new_string_file(
 async fn write_or_truncate_string_file(
   path : String,
   content : String,
-) -> Unit raise CliError {
+) -> Unit raise @core.CliError {
   @fs.write_file(path, content, create_mode=CreateOrTruncate) catch {
-    err => raise CliError("failed to write file \{path}: \{(err)}")
+    err => raise @core.cli_error("failed to write file \{path}: \{(err)}")
   }
 }
 
@@ -69,27 +69,27 @@ fn home_dir() -> String? {
 }
 
 ///|
-async fn verify_is_directory(path : String) -> Unit raise CliError {
+async fn verify_is_directory(path : String) -> Unit raise @core.CliError {
   try @fs.kind(path) catch {
-    err => raise CliError("failed to inspect directory \{path}: \{err}")
+    err => raise @core.cli_error("failed to inspect directory \{path}: \{err}")
   } noraise {
     Directory => ()
-    _ => raise CliError("path exists but is not a directory: \{path}")
+    _ => raise @core.cli_error("path exists but is not a directory: \{path}")
   }
 }
 
 ///|
-async fn ensure_dir(path : String) -> Unit raise CliError {
+async fn ensure_dir(path : String) -> Unit raise @core.CliError {
   guard !path_exists(path) else { verify_is_directory(path) }
   @fs.mkdir(path) catch {
-    err => raise CliError("failed to create directory \{path}: \{(err)}")
+    err => raise @core.cli_error("failed to create directory \{path}: \{(err)}")
   }
 }
 
 ///|
-async fn ensure_existing_dir(path : String) -> Unit raise CliError {
+async fn ensure_existing_dir(path : String) -> Unit raise @core.CliError {
   guard path_exists(path) else {
-    raise CliError("directory does not exist: \{path}")
+    raise @core.cli_error("directory does not exist: \{path}")
   }
   verify_is_directory(path)
 }

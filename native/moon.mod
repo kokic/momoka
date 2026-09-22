@@ -1,11 +1,12 @@
 name = "kokic/momoka"
 
-version = "0.6.2"
+version = "0.7.0"
 
 import {
   "moonbitlang/x@0.5.3",
   "moonbitlang/async@0.21.3",
   "kokic/moonbit-chalk@0.6.0",
+  "kokic/momoka-core@0.7.0",
 }
 
 readme = "README.md"

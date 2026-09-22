@@ -1,5 +1,5 @@
 ///|
-async fn run_upgrade_request(path : String) -> Unit raise CliError {
+async fn run_upgrade_request(path : String) -> Unit raise @core.CliError {
   let project_dir = absolute_path(path)
   ensure_existing_dir(project_dir)
   let moon_mod_path = project_file_path(project_dir, "moon.mod")
@@ -10,16 +10,19 @@ async fn run_upgrade_request(path : String) -> Unit raise CliError {
 ///|
 async fn import_modules_from_moon_mod(
   moon_mod_path : String,
-) -> Array[String] raise CliError {
+) -> Array[String] raise @core.CliError {
   guard path_exists(moon_mod_path) else {
-    raise CliError("moon.mod not found: \{moon_mod_path}")
+    raise @core.cli_error("moon.mod not found: \{moon_mod_path}")
   }
   try @fs.read_file(moon_mod_path) catch {
-    err => raise CliError("failed to read \{moon_mod_path}: \{err}")
+    err => raise @core.cli_error("failed to read \{moon_mod_path}: \{err}")
   } noraise {
     content =>
       try content.text() catch {
-        err => raise CliError("failed to decode \{moon_mod_path}: \{Repr(err)}")
+        err =>
+          raise @core.cli_error(
+            "failed to decode \{moon_mod_path}: \{Repr(err)}",
+          )
       } noraise {
         text => parse_import_modules(text)
       }
@@ -94,7 +97,7 @@ fn upgrade_outcome_message(
 async fn upgrade_project_modules(
   project_dir : String,
   mod_names : ArrayView[String],
-) -> String raise CliError {
+) -> String raise @core.CliError {
   if mod_names.is_empty() {
     return "no dependencies to upgrade in \{project_dir}"
   }
@@ -113,7 +116,7 @@ async fn upgrade_project_modules(
     failures.push(failure)
   }
   guard failures.is_empty() else {
-    raise CliError(
+    raise @core.cli_error(
       "failed to upgrade \{failures.length()} of \{mod_names.length()} dependencies: \{failures.join("; ")}",
     )
   }

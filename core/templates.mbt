@@ -1,5 +1,5 @@
 ///|
-fn moon_mod_content(
+pub fn moon_mod_content(
   username~ : String,
   module_name~ : String,
   license : String,
@@ -62,7 +62,7 @@ test "moon_mod_content uses suffixless moon.mod format" {
 }
 
 ///|
-fn moon_pkg_content() -> String {
+pub fn moon_pkg_content() -> String {
   (
     #|import {
     #|}
@@ -70,7 +70,7 @@ fn moon_pkg_content() -> String {
 }
 
 ///|
-fn gitignore_content() -> String {
+pub fn gitignore_content() -> String {
   (
     #|.DS_Store
     #|_build/
@@ -83,6 +83,6 @@ fn gitignore_content() -> String {
 }
 
 ///|
-fn gitattributes_content() -> String {
+pub fn gitattributes_content() -> String {
   "* text=auto eol=lf"
 }

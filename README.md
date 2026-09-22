@@ -2,9 +2,23 @@
 
 Create a minimal **Mo**onBit **mo**dule **か**? 
 
+Momoka is a MoonBit workspace with three modules:
+
+| Module  | Package                | Target   | Configuration                    |
+| ------- | ---------------------- | -------- | -------------------------------- |
+| `core`  | `kokic/momoka-core`    | any      | pure logic, no I/O               |
+| `native`| `kokic/momoka`         | `native` | `~/.momoka/preferred.json` + args |
+| `wasm`  | `kokic/momoka-wasm`    | `wasm`   | command-line arguments only       |
+
+`core` holds the shared templates, settings resolution, and CLI definitions. The
+`native` executable persists preferences in `~/.momoka/preferred.json` and can
+call `moon whoami`; the `wasm` (WASI) executable is stateless and takes every
+value from its arguments.
+
 ## Example
 
 ```sh
+# native: preferences are read from and saved to ~/.momoka/preferred.json
 momoka new your-great-project
 
 # or, cd <your-existing-project>
@@ -14,6 +28,10 @@ momoka init
 momoka new your-great-project --username alice --license MIT --host gitlab.com --target js
 momoka init --username alice
 
+# configure or print the saved defaults
+momoka cfg
+momoka cfg --show
+
 # upgrade all dependencies to their latest versions
 momoka upgrade
 
@@ -22,6 +40,16 @@ momoka stable
 
 # select a local Git branch by number and check it out
 momoka branch
+```
+
+## WASM
+
+The `wasm` module supports `new` and `init` only. It never reads or writes
+`~/.momoka`; pass everything on the command line. `--username` falls back to
+`guest` when omitted.
+
+```sh
+moon run --target wasm wasm -- new your-great-project --username alice --license MIT
 ```
 
 ## Help
@@ -48,11 +76,9 @@ Options:
 
 Use `momoka help <command>` (or `momoka <command> --help`) for subcommand
 details. Both `new` and `init` support `--username` (`-u`), `--license` (`-l`),
-`--host`, and `--target` (`-t`). These options override saved preferences for
+`--host`, and `--target` (`-t`). These options override the saved preferences for
 the current invocation without changing them. License, host, and target fall
-back to `AGPL-3.0`, `github.com`, and `native` when no preference is saved.
-Without `--username` or a saved username, Momoka prompts for one and saves it
-for future use. Use `momoka cfg` to configure default username, license, host,
-and target; press Enter to keep an existing value. Use `momoka cfg --show` to
-display all saved preferences. An unset username will be prompted for on
-`new`/`init` unless `--username` is supplied.
+back to `Apache-2.0`, `github.com`, and `native`. Without `--username` or a saved
+username, Momoka prompts for one and saves it for future use. Use `momoka cfg`
+to configure default username, license, host, and target; press Enter to keep an
+existing value. Use `momoka cfg --show` to display all saved preferences.

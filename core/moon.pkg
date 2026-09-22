@@ -1,0 +1,5 @@
+import {
+  "moonbitlang/core/argparse",
+  "moonbitlang/core/test",
+  "moonbitlang/x/path",
+}

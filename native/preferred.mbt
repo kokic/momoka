@@ -22,12 +22,14 @@ fn PreferredConfig::empty() -> PreferredConfig {
 }
 
 ///|
-fn PreferredConfig::parse(content : String) -> PreferredConfig raise CliError {
+fn PreferredConfig::parse(
+  content : String,
+) -> PreferredConfig raise @core.CliError {
   let json = @json.parse(content) catch {
-    err => raise CliError("failed to parse preferences JSON: \{err}")
+    err => raise @core.cli_error("failed to parse preferences JSON: \{err}")
   }
   guard json is Object(obj) else {
-    raise CliError("expected preferences JSON object")
+    raise @core.cli_error("expected preferences JSON object")
   }
   {
     username: string_field(obj, "username"),
@@ -67,17 +69,17 @@ fn push_string_field(
 ///|
 async fn PreferredConfig::load(
   preferred_file : String,
-) -> PreferredConfig raise CliError {
+) -> PreferredConfig raise @core.CliError {
   guard path_exists(preferred_file) else { PreferredConfig::empty() }
   let content = @fs.read_file(preferred_file) catch {
     err =>
-      raise CliError(
+      raise @core.cli_error(
         "failed to read preferences \{preferred_file}: \{Repr(err)}",
       )
   }
   let text = content.text() catch {
     err =>
-      raise CliError(
+      raise @core.cli_error(
         "failed to decode preferences \{preferred_file}: \{Repr(err)}",
       )
   }
@@ -88,15 +90,15 @@ async fn PreferredConfig::load(
 async fn PreferredConfig::save(
   self : PreferredConfig,
   preferred_file : String,
-) -> Unit raise CliError {
+) -> Unit raise @core.CliError {
   ensure_dir(@path.Path::dirname(preferred_file).to_string())
   write_or_truncate_string_file(preferred_file, self.to_content())
 }
 
 ///|
-async fn load_current_preferences() -> (String, PreferredConfig) raise CliError {
+async fn load_current_preferences() -> (String, PreferredConfig) raise @core.CliError {
   guard home_dir() is Some(home) else {
-    raise CliError("cannot locate home directory from HOME/USERPROFILE")
+    raise @core.cli_error("cannot locate home directory from HOME/USERPROFILE")
   }
   let preferred_file = preferred_file_path(home)
   (preferred_file, PreferredConfig::load(preferred_file))

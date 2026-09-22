@@ -8,7 +8,7 @@ async fn main {
 }
 
 ///|
-async fn CliRequest::execute(self : CliRequest) -> Unit raise CliError {
+async fn CliRequest::execute(self : CliRequest) -> Unit raise @core.CliError {
   match self {
     Project(config) => config.execute()
     Upgrade(path) => run_upgrade_request(path)
@@ -21,15 +21,19 @@ async fn CliRequest::execute(self : CliRequest) -> Unit raise CliError {
 }
 
 ///|
-async fn CliConfig::execute(self : CliConfig) -> Unit raise CliError {
-  let target = self.location.validate()
+async fn CliConfig::execute(self : CliConfig) -> Unit raise @core.CliError {
+  let target = validate_project_location(self.location)
   let user = ensure_username_with_preferred(self.overrides.username)
   match target.mode {
     Create => ensure_dir_recursive(target.project_dir)
     Initialization => ()
   }
-  let settings = self.overrides.resolve(user.preferred)
-  let files = target.render_files(user.username, settings)
+  let settings = resolve_settings(self.overrides, user.preferred)
+  let files = @core.render_project_files(
+    target.project_dir,
+    user.username,
+    settings,
+  )
   target.write_files(files)
   println(target.success_message(files))
 }
@@ -37,7 +41,7 @@ async fn CliConfig::execute(self : CliConfig) -> Unit raise CliError {
 ///|
 fn ProjectTarget::success_message(
   self : ProjectTarget,
-  files : ArrayView[ProjectFile],
+  files : ArrayView[@core.ProjectFile],
 ) -> String {
   let action = match self.mode {
     Create => "created and initialized"

@@ -1,10 +1,10 @@
 ///|
-async fn run_install_request(nightly~ : Bool) -> Unit raise CliError {
+async fn run_install_request(nightly~ : Bool) -> Unit raise @core.CliError {
   let status = install_toolchain(nightly~) catch {
-    err => raise CliError("failed to run the MoonBit installer: \{err}")
+    err => raise @core.cli_error("failed to run the MoonBit installer: \{err}")
   }
   guard !(status == 0) else { return }
-  raise CliError("MoonBit installation failed with exit code \{status}")
+  raise @core.cli_error("MoonBit installation failed with exit code \{status}")
 }
 
 ///|

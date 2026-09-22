@@ -2,13 +2,13 @@
 const MAX_USERNAME_RETRIES : Int = 5
 
 ///|
-async fn prompt_username(remaining_retry : Int) -> String raise CliError {
+async fn prompt_username(remaining_retry : Int) -> String raise @core.CliError {
   guard remaining_retry > 0 else {
-    raise CliError("failed to read username from stdin")
+    raise @core.cli_error("failed to read username from stdin")
   }
   println("please input MoonBit username:")
   guard read_line_from_stdin() is Some(line) else {
-    raise CliError("failed to read username from stdin")
+    raise @core.cli_error("failed to read username from stdin")
   }
   let username = line.trim().to_owned()
   guard username.is_empty() else { username }
@@ -25,12 +25,12 @@ priv struct UserPreferences {
 ///|
 async fn ensure_username_with_preferred(
   explicit_username : String?,
-) -> UserPreferences raise CliError {
+) -> UserPreferences raise @core.CliError {
   let (preferred_file, preferred) = load_current_preferences()
   if explicit_username is Some(value) {
     let username = value.trim().to_owned()
     guard !username.is_empty() else {
-      raise CliError("username cannot be empty")
+      raise @core.cli_error("username cannot be empty")
     }
     return { username, preferred, }
   }
