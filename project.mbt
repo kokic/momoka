@@ -27,6 +27,7 @@ async fn ensure_new_project_target(path : String) -> Unit raise @core.CliError {
 }
 
 ///|
+#cfg(target="native")
 fn resolve_settings(
   overrides : @core.ProjectOverrides,
   preferred : PreferredConfig,

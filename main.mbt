@@ -8,6 +8,7 @@ async fn main {
 }
 
 ///|
+#cfg(target="native")
 async fn CliRequest::execute(self : CliRequest) -> Unit raise @core.CliError {
   match self {
     Project(config) => config.execute()
@@ -21,17 +22,24 @@ async fn CliRequest::execute(self : CliRequest) -> Unit raise @core.CliError {
 }
 
 ///|
+#cfg(target="wasm")
+async fn CliRequest::execute(self : CliRequest) -> Unit raise @core.CliError {
+  match self {
+    Project(config) => config.execute()
+  }
+}
+
+///|
 async fn CliConfig::execute(self : CliConfig) -> Unit raise @core.CliError {
   let target = validate_project_location(self.location)
-  let user = ensure_username_with_preferred(self.overrides.username)
+  let (username, settings) = resolve_project_options(self.overrides)
   match target.mode {
     Create => ensure_dir_recursive(target.project_dir)
     Initialization => ()
   }
-  let settings = resolve_settings(self.overrides, user.preferred)
   let files = @core.render_project_files(
     target.project_dir,
-    user.username,
+    username,
     settings,
   )
   target.write_files(files)
@@ -52,4 +60,9 @@ fn ProjectTarget::success_message(
 }
 
 ///|
+#cfg(target="native")
 pub let emph : (String) -> String = s => @chalk.chalk().color(Cyan).render(s)
+
+///|
+#cfg(target="wasm")
+pub let emph : (String) -> String = s => s

@@ -2,18 +2,23 @@
 
 Create a minimal **Mo**onBit **mo**dule **か**? 
 
-Momoka is a MoonBit workspace with three modules:
+Momoka is a single MoonBit module, `kokic/momoka`, with two packages:
 
-| Module  | Package                | Target   | Configuration                    |
-| ------- | ---------------------- | -------- | -------------------------------- |
-| `core`  | `kokic/momoka-core`    | any      | pure logic, no I/O               |
-| `native`| `kokic/momoka`         | `native` | `~/.momoka/preferred.json` + args |
-| `wasm`  | `kokic/momoka-wasm`    | `wasm`   | command-line arguments only       |
+| Directory | Package             | Target           | Purpose                    |
+| --------- | ------------------- | ---------------- | -------------------------- |
+| `.`       | `kokic/momoka`      | `native`, `wasm` | shared CLI                 |
+| `core`    | `kokic/momoka/core` | any              | shared pure logic, no I/O  |
 
 `core` holds the shared templates, settings resolution, and CLI definitions. The
-`native` executable persists preferences in `~/.momoka/preferred.json` and can
-call `moon whoami`; the `wasm` (WASI) executable is stateless and takes every
-value from its arguments.
+CLI shares argument parsing and project creation across both targets. Native
+builds read and save preferences in `~/.momoka/preferred.json`; wasm builds use
+only command-line arguments and built-in defaults. Conditional compilation
+excludes preference file access and native-only commands from wasm builds.
+
+```sh
+moon run --target native . -- --help
+moon run --target wasm . -- --help
+```
 
 ## Example
 
@@ -44,13 +49,16 @@ momoka branch
 
 ## WASM
 
-The `wasm` module supports `new` and `init` only. It never reads or writes
+The `wasm` build supports `new` and `init` only. It never reads or writes
 `~/.momoka`; pass everything on the command line. `--username` falls back to
 `guest` when omitted.
 
 ```sh
-moon run --target wasm wasm -- new your-great-project --username alice --license MIT
+moon run --target wasm . -- new your-great-project --username alice --license MIT
 ```
+
+Run wasm builds with MoonBit's runtime (`moon run` / `moonrun`); the async
+library requires MoonBit host functions beyond standard WASI.
 
 ## Help
 
@@ -74,7 +82,8 @@ Options:
   -V, --version  Show version information.
 ```
 
-Use `momoka help <command>` (or `momoka <command> --help`) for subcommand
+The command list above is for native builds. Use `momoka help <command>` (or
+`momoka <command> --help`) for subcommand
 details. Both `new` and `init` support `--username` (`-u`), `--license` (`-l`),
 `--host`, and `--target` (`-t`). These options override the saved preferences for
 the current invocation without changing them. License, host, and target fall

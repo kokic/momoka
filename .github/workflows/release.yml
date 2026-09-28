@@ -49,7 +49,7 @@ jobs:
           fi
 
       - name: Build native release binary
-        run: moon build --release
+        run: moon build --release --target native
 
       - name: Package binary (Windows)
         if: runner.os == 'Windows'

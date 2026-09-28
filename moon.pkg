@@ -1,0 +1,30 @@
+import {
+  "moonbitlang/core/env",
+  "moonbitlang/core/string",
+  "moonbitlang/core/json",
+  "moonbitlang/core/argparse",
+  "moonbitlang/async/stdio",
+  "moonbitlang/async/process",
+  "moonbitlang/x/path",
+  "moonbitlang/async",
+  "moonbitlang/async/fs",
+  "kokic/moonbit-chalk" @chalk,
+  "kokic/momoka/core" @core,
+}
+
+supported_targets = "+native+wasm"
+
+options(
+  targets: {
+    "branch.mbt": ["native"],
+    "commands.mbt": ["native"],
+    "configure.mbt": ["native"],
+    "preferred.mbt": ["native"],
+    "toolchain.mbt": ["native"],
+    "upgrade.mbt": ["native"],
+    "username.mbt": ["native"],
+    "username_wasm.mbt": ["wasm"],
+  },
+)
+
+pkgtype(kind: "executable")
