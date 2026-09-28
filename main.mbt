@@ -15,7 +15,6 @@ async fn CliRequest::execute(self : CliRequest) -> Unit raise @core.CliError {
     Upgrade(path) => run_upgrade_request(path)
     Stable => run_install_request(nightly=false)
     Nightly => run_install_request(nightly=true)
-    Branch => run_branch_request()
     Preferences(Configure) => configure_preferred_defaults()
     Preferences(Show) => show_preferred_defaults()
   }

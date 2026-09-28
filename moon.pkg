@@ -1,6 +1,5 @@
 import {
   "moonbitlang/core/env",
-  "moonbitlang/core/string",
   "moonbitlang/core/json",
   "moonbitlang/core/argparse",
   "moonbitlang/async/stdio",
@@ -8,7 +7,7 @@ import {
   "moonbitlang/x/path",
   "moonbitlang/async",
   "moonbitlang/async/fs",
-  "moonbit-community/chalk" @chalk,
+  "moonbit-community/chalk",
   "kokic/momoka/core",
 }
 
@@ -18,7 +17,6 @@ pkgtype(kind: "executable")
 
 options(
   targets: {
-    "branch.mbt": [ "native" ],
     "commands.mbt": [ "native" ],
     "configure.mbt": [ "native" ],
     "preferred.mbt": [ "native" ],

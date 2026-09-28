@@ -18,7 +18,6 @@ priv enum CliRequest {
   Upgrade(String)
   Stable
   Nightly
-  Branch
   Preferences(PreferencesRequest)
 }
 
@@ -89,7 +88,6 @@ fn CliRequest::from_matches(
     "stable" => Stable
     "nightly" => Nightly
     "cfg" => decode_preferences_request(submatches)
-    "branch" => Branch
     _ => raise @core.cli_error("unknown command: \{name}")
   }
 }
@@ -125,10 +123,6 @@ fn cli_commands() -> Array[@argparse.Command] {
     @argparse.Command("stable", about="Install the stable MoonBit toolchain."),
     @argparse.Command("nightly", about="Install the nightly MoonBit toolchain."),
     preferences_command(),
-    @argparse.Command(
-      "branch",
-      about="Select and check out a local Git branch.",
-    ),
   ]
 }
 
