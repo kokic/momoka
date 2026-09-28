@@ -1,6 +1,6 @@
 ---
 name: momoka
-description: Create or initialize minimal MoonBit modules with Momoka's stateless wasm CLI, using command-line options without reading or writing saved preferences.
+description: Create or initialize minimal MoonBit modules with Momoka's stateless wasm CLI.
 ---
 
 # Momoka
