@@ -125,7 +125,10 @@ fn cli_commands() -> Array[@argparse.Command] {
     @argparse.Command("stable", about="Install the stable MoonBit toolchain."),
     @argparse.Command("nightly", about="Install the nightly MoonBit toolchain."),
     preferences_command(),
-    @argparse.Command("branch", about="Select and check out a local Git branch."),
+    @argparse.Command(
+      "branch",
+      about="Select and check out a local Git branch.",
+    ),
   ]
 }
 

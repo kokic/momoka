@@ -9,7 +9,7 @@ async fn resolve_project_options(
 
 ///|
 #cfg(target="wasm")
-async fn resolve_project_options(
+fn resolve_project_options(
   overrides : @core.ProjectOverrides,
 ) -> (String, @core.ProjectSettings) raise @core.CliError {
   let username = ensure_username(overrides.username)

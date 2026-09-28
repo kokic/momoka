@@ -37,11 +37,7 @@ async fn CliConfig::execute(self : CliConfig) -> Unit raise @core.CliError {
     Create => ensure_dir_recursive(target.project_dir)
     Initialization => ()
   }
-  let files = @core.render_project_files(
-    target.project_dir,
-    username,
-    settings,
-  )
+  let files = @core.render_project_files(target.project_dir, username, settings)
   target.write_files(files)
   println(target.success_message(files))
 }

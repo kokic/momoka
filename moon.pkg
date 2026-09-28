@@ -8,23 +8,23 @@ import {
   "moonbitlang/x/path",
   "moonbitlang/async",
   "moonbitlang/async/fs",
-  "kokic/moonbit-chalk" @chalk,
-  "kokic/momoka/core" @core,
+  "moonbit-community/chalk" @chalk,
+  "kokic/momoka/core",
 }
 
 supported_targets = "+native+wasm"
 
+pkgtype(kind: "executable")
+
 options(
   targets: {
-    "branch.mbt": ["native"],
-    "commands.mbt": ["native"],
-    "configure.mbt": ["native"],
-    "preferred.mbt": ["native"],
-    "toolchain.mbt": ["native"],
-    "upgrade.mbt": ["native"],
-    "username.mbt": ["native"],
-    "username_wasm.mbt": ["wasm"],
+    "branch.mbt": [ "native" ],
+    "commands.mbt": [ "native" ],
+    "configure.mbt": [ "native" ],
+    "preferred.mbt": [ "native" ],
+    "toolchain.mbt": [ "native" ],
+    "upgrade.mbt": [ "native" ],
+    "username.mbt": [ "native" ],
+    "username_wasm.mbt": [ "wasm" ],
   },
 )
-
-pkgtype(kind: "executable")
