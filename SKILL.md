@@ -1,59 +1,45 @@
 ---
 name: momoka
-description: Create or initialize minimal MoonBit modules, upgrade module dependencies, manage defaults, or install the MoonBit toolchain with Momoka's native or wasm CLI.
+description: Create or initialize MoonBit modules, upgrade their dependencies, configure defaults, or install MoonBit toolchains using Momoka through moonx.
 ---
 
 # Momoka
 
-Both the native and wasm CLI support all commands. Choose `new <path>` for a
-directory that does not exist, or `init [path]` for an existing directory.
-`init` defaults to the current directory.
+| Command | Use |
+| --- | --- |
+| `moonx kokic/momoka -- new <path>` | Create a module in a new directory. |
+| `moonx kokic/momoka -- init [path]` | Initialize an existing directory; defaults to `./`. |
+| `moonx kokic/momoka -- upgrade [path...]` | Upgrade dependencies to their latest versions in one or more module directories; defaults to `./`. |
+| `moonx kokic/momoka -- cfg` | Configure saved defaults interactively. |
+| `moonx kokic/momoka -- cfg --show` | Print saved defaults. |
+| `moonx kokic/momoka -- stable` | Install the stable MoonBit toolchain. |
+| `moonx kokic/momoka -- nightly` | Install the nightly MoonBit toolchain. |
 
-Run the published `kokic/momoka` Registry package through `moonx`, which defaults
-to the wasm target:
+`new` and `init` derive the module name from the username and directory basename.
+They reject existing output files; do not delete those files to force initialization.
+`upgrade` processes directories in the supplied order; each must contain `moon.mod`.
 
-```sh
-moonx kokic/momoka -- new my-project --username alice
-moonx kokic/momoka -- init ./existing-project --username alice --license MIT --host gitlab.com --target js
-```
+## Module options
 
-Both commands generate `moon.mod`, `moon.pkg`, `.gitignore`, `.moonignore`, and
-`.gitattributes`. They reject existing output files; do not delete those files
-just to make initialization succeed. The module name uses the username and the
-target directory's basename.
+Pass these options to `new` or `init`:
 
-Options shared by `new` and `init`:
-
-| Option | Meaning | Built-in default |
+| Option | Meaning | Built-in fallback |
 | --- | --- | --- |
-| `--username`, `-u` | Module owner and repository username | Prompt if no saved value |
+| `--username`, `-u` | Module owner and repository username | Prompt and save |
 | `--license`, `-l` | Module license identifier | `Apache-2.0` |
 | `--host` | Repository hosting domain | `github.com` |
 | `--target`, `-t` | Generated module's preferred target | `native` |
 
-Use the user's supplied values. Omitted options use saved preferences from
-`~/.momoka/preferred.json`, then the built-in defaults above. If no username
-is supplied or saved, Momoka prompts for one and saves it.
+Omitted options use saved preferences from `~/.momoka/preferred.json`, then
+the built-in fallbacks above.
 
-## Upgrade dependencies
+## SeekMoon sandbox
 
-Use `momoka upgrade [path...]` to upgrade all dependencies
-of one or more existing MoonBit modules to their latest versions. Each
-directory must contain `moon.mod`. Paths are processed in the supplied order;
-omitting them defaults to `./`.
+Commands such as `moonx kokic/momoka -- cfg` that write outside the module
+directory are rejected. Pass equivalent options directly
+to `new` or `init` instead of saving preferences. Explicitly supply `--username`
+to avoid prompting for and saving a username to `~/.momoka/preferred.json`.
 
 ```sh
-momoka upgrade
-momoka upgrade ./mod-a ./mod-b
-moonx kokic/momoka -- upgrade ./mod-a ./mod-b
+moonx kokic/momoka -- init ./mod --username alice --license MIT --host github.com --target native
 ```
-
-## Preferences and toolchain
-
-Use `momoka cfg` to configure saved defaults, or `momoka cfg --show` to print
-them. Use `momoka stable` or `momoka nightly` to install the corresponding
-MoonBit toolchain. These commands are also available through `moonx kokic/momoka`.
-
-For local development, run `moon run --target wasm . -- <args>`. To run a
-compiled artifact, use `moonrun <file.wasm> -- <args>`. The async library
-requires MoonBit runtime host functions.
