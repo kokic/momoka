@@ -130,11 +130,11 @@ pub fn init_command() -> @argparse.Command {
 pub fn upgrade_command() -> @argparse.Command {
   @argparse.Command(
     "upgrade",
-    about="Upgrade all dependencies of the projects to their latest versions.",
+    about="Upgrade all dependencies of the modules to their latest versions.",
     positionals=[
       @argparse.PositionArg(
         "path",
-        about="Project directory paths [default: current directory].",
+        about="Module directory paths [default: current directory].",
         num_args=@argparse.ValueRange(lower=0),
       ),
     ],
