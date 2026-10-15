@@ -1,6 +1,6 @@
 ---
 name: momoka
-description: Create or initialize minimal MoonBit modules with Momoka's stateless wasm CLI.
+description: Create or initialize minimal MoonBit modules with Momoka's stateless wasm CLI, or upgrade module dependencies with its native CLI.
 ---
 
 # Momoka
@@ -31,3 +31,17 @@ Options shared by `new` and `init`:
 | `--target`, `-t` | Generated module's preferred target | `native` |
 
 Use the user's supplied values; omitted options use the defaults above.
+
+## Upgrade dependencies (native)
+
+Use the native `momoka upgrade [path...]` command to upgrade all dependencies
+of one or more existing MoonBit modules to their latest versions. Each
+directory must contain `moon.mod`. Paths are processed in the supplied order;
+omitting them defaults to `./`.
+
+```sh
+momoka upgrade
+momoka upgrade ./mod-a ./mod-b
+```
+
+The wasm CLI supports only `new` and `init`; use the native CLI for `upgrade`.
