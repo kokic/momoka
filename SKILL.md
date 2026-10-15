@@ -1,11 +1,11 @@
 ---
 name: momoka
-description: Create or initialize minimal MoonBit modules with Momoka's stateless wasm CLI, or upgrade module dependencies with its native CLI.
+description: Create or initialize minimal MoonBit modules, upgrade module dependencies, manage defaults, or install the MoonBit toolchain with Momoka's native or wasm CLI.
 ---
 
 # Momoka
 
-Use the wasm CLI to generate a minimal MoonBit module. Choose `new <path>` for a
+Both the native and wasm CLI support all commands. Choose `new <path>` for a
 directory that does not exist, or `init [path]` for an existing directory.
 `init` defaults to the current directory.
 
@@ -25,16 +25,18 @@ Options shared by `new` and `init`:
 
 | Option | Meaning | Built-in default |
 | --- | --- | --- |
-| `--username`, `-u` | Module owner and repository username | `guest` |
+| `--username`, `-u` | Module owner and repository username | Prompt if no saved value |
 | `--license`, `-l` | Module license identifier | `Apache-2.0` |
 | `--host` | Repository hosting domain | `github.com` |
 | `--target`, `-t` | Generated module's preferred target | `native` |
 
-Use the user's supplied values; omitted options use the defaults above.
+Use the user's supplied values. Omitted options use saved preferences from
+`~/.momoka/preferred.json`, then the built-in defaults above. If no username
+is supplied or saved, Momoka prompts for one and saves it.
 
-## Upgrade dependencies (native)
+## Upgrade dependencies
 
-Use the native `momoka upgrade [path...]` command to upgrade all dependencies
+Use `momoka upgrade [path...]` to upgrade all dependencies
 of one or more existing MoonBit modules to their latest versions. Each
 directory must contain `moon.mod`. Paths are processed in the supplied order;
 omitting them defaults to `./`.
@@ -42,6 +44,14 @@ omitting them defaults to `./`.
 ```sh
 momoka upgrade
 momoka upgrade ./mod-a ./mod-b
+moonx kokic/momoka -- upgrade ./mod-a ./mod-b
 ```
 
-The wasm CLI supports only `new` and `init`; use the native CLI for `upgrade`.
+## Preferences and toolchain
+
+Use `momoka cfg` to configure saved defaults, or `momoka cfg --show` to print
+them. Use `momoka stable` or `momoka nightly` to install the corresponding
+MoonBit toolchain. These commands are also available through `moonx kokic/momoka`.
+
+Run wasm builds with `moonx`, `moon run --target wasm`, or `moonrun`; the async
+library requires MoonBit runtime host functions.

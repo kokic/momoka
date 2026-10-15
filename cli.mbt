@@ -5,26 +5,18 @@ priv struct CliConfig {
 }
 
 ///|
-#cfg(target="native")
 priv enum PreferencesRequest {
   Configure
   Show
 }
 
 ///|
-#cfg(target="native")
 priv enum CliRequest {
   Project(CliConfig)
   Upgrade(Array[String])
   Stable
   Nightly
   Preferences(PreferencesRequest)
-}
-
-///|
-#cfg(target="wasm")
-priv enum CliRequest {
-  Project(CliConfig)
 }
 
 ///|
@@ -46,7 +38,6 @@ fn decode_init_request(matches : @argparse.Matches) -> CliRequest {
 }
 
 ///|
-#cfg(target="native")
 fn decode_preferences_request(matches : @argparse.Matches) -> CliRequest {
   if matches.flags.get("show").unwrap_or(false) {
     Preferences(Show)
@@ -76,7 +67,6 @@ fn CliRequest::parse(
 }
 
 ///|
-#cfg(target="native")
 fn CliRequest::from_matches(
   matches : @argparse.Matches,
 ) -> CliRequest raise @core.CliError {
@@ -93,28 +83,9 @@ fn CliRequest::from_matches(
 }
 
 ///|
-#cfg(target="wasm")
-fn CliRequest::from_matches(
-  matches : @argparse.Matches,
-) -> CliRequest raise @core.CliError {
-  guard! matches.subcommand is Some((name, submatches))
-  match name {
-    "new" => decode_new_request(submatches)
-    "init" => decode_init_request(submatches)
-    _ => raise @core.cli_error("unknown command: \{name}")
-  }
-}
-
-///|
-#cfg(target="native")
 const CLI_ABOUT : String = "Create a minimal MoonBit module."
 
 ///|
-#cfg(target="wasm")
-const CLI_ABOUT : String = "Create a minimal MoonBit module from the command line (WASI)."
-
-///|
-#cfg(target="native")
 fn cli_commands() -> Array[@argparse.Command] {
   [
     @core.new_command(),
@@ -124,10 +95,4 @@ fn cli_commands() -> Array[@argparse.Command] {
     @argparse.Command("nightly", about="Install the nightly MoonBit toolchain."),
     preferences_command(),
   ]
-}
-
-///|
-#cfg(target="wasm")
-fn cli_commands() -> Array[@argparse.Command] {
-  [@core.new_command(), @core.init_command()]
 }

@@ -8,7 +8,6 @@ async fn main {
 }
 
 ///|
-#cfg(target="native")
 async fn CliRequest::execute(self : CliRequest) -> Unit raise @core.CliError {
   match self {
     Project(config) => config.execute()
@@ -17,14 +16,6 @@ async fn CliRequest::execute(self : CliRequest) -> Unit raise @core.CliError {
     Nightly => run_install_request(nightly=true)
     Preferences(Configure) => configure_preferred_defaults()
     Preferences(Show) => show_preferred_defaults()
-  }
-}
-
-///|
-#cfg(target="wasm")
-async fn CliRequest::execute(self : CliRequest) -> Unit raise @core.CliError {
-  match self {
-    Project(config) => config.execute()
   }
 }
 
@@ -55,9 +46,4 @@ fn ProjectTarget::success_message(
 }
 
 ///|
-#cfg(target="native")
 pub let emph : (String) -> String = s => @chalk.chalk().color(Cyan).render(s)
-
-///|
-#cfg(target="wasm")
-pub let emph : (String) -> String = s => s

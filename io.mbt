@@ -1,5 +1,4 @@
 ///|
-#cfg(target="native")
 async fn read_line_from_stdin() -> String? raise @core.CliError {
   @stdio.stdin.read_until("\n") catch {
     err => raise @core.cli_error("failed to read input from stdin: \{(err)}")
@@ -49,7 +48,6 @@ async fn write_new_string_file(
 }
 
 ///|
-#cfg(target="native")
 async fn write_or_truncate_string_file(
   path : String,
   content : String,
@@ -60,7 +58,6 @@ async fn write_or_truncate_string_file(
 }
 
 ///|
-#cfg(target="native")
 fn home_dir() -> String? {
   let home = @env.get_env_var("HOME")
   guard home is Some(path) && !path.is_empty() else {
