@@ -9,7 +9,8 @@ Both the native and wasm CLI support all commands. Choose `new <path>` for a
 directory that does not exist, or `init [path]` for an existing directory.
 `init` defaults to the current directory.
 
-Run the `kokic/momoka` Registry package through `moonx`:
+Run the published `kokic/momoka` Registry package through `moonx`, which defaults
+to the wasm target:
 
 ```sh
 moonx kokic/momoka -- new my-project --username alice
@@ -53,5 +54,6 @@ Use `momoka cfg` to configure saved defaults, or `momoka cfg --show` to print
 them. Use `momoka stable` or `momoka nightly` to install the corresponding
 MoonBit toolchain. These commands are also available through `moonx kokic/momoka`.
 
-Run wasm builds with `moonx`, `moon run --target wasm`, or `moonrun`; the async
-library requires MoonBit runtime host functions.
+For local development, run `moon run --target wasm . -- <args>`. To run a
+compiled artifact, use `moonrun <file.wasm> -- <args>`. The async library
+requires MoonBit runtime host functions.
