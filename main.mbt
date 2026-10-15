@@ -12,7 +12,7 @@ async fn main {
 async fn CliRequest::execute(self : CliRequest) -> Unit raise @core.CliError {
   match self {
     Project(config) => config.execute()
-    Upgrade(path) => run_upgrade_request(path)
+    Upgrade(paths) => run_upgrade_request(paths)
     Stable => run_install_request(nightly=false)
     Nightly => run_install_request(nightly=true)
     Preferences(Configure) => configure_preferred_defaults()

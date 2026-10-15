@@ -15,7 +15,7 @@ priv enum PreferencesRequest {
 #cfg(target="native")
 priv enum CliRequest {
   Project(CliConfig)
-  Upgrade(String)
+  Upgrade(Array[String])
   Stable
   Nightly
   Preferences(PreferencesRequest)
@@ -84,7 +84,7 @@ fn CliRequest::from_matches(
   match name {
     "new" => decode_new_request(submatches)
     "init" => decode_init_request(submatches)
-    "upgrade" => Upgrade(@core.matched_value(submatches, "path").unwrap_or("."))
+    "upgrade" => Upgrade(submatches.values.get("path").unwrap_or(["."]))
     "stable" => Stable
     "nightly" => Nightly
     "cfg" => decode_preferences_request(submatches)
