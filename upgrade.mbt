@@ -1,17 +1,4 @@
 ///|
-fn Dependency::version_change(
-  self : Dependency,
-  version_after : String,
-) -> String {
-  let colored_before = @chalk.chalk().modifier(Dim).render(self.version)
-  guard version_after != self.version else {
-    return "\{emph(self.name)}: \{colored_before} -> \{colored_before}"
-  }
-  let colored_after = @chalk.chalk().color(Green).render(version_after)
-  "\{emph(self.name)}: \{colored_before} -> \{colored_after}"
-}
-
-///|
 async fn run_upgrade_request(
   paths : ArrayView[String],
 ) -> Unit raise @core.CliError {
@@ -64,7 +51,13 @@ async fn upgrade_project_modules(
     guard upgrade_outcome_message(name, outcome) is Some(failure) else {
       let updated = read_moon_mod(moon_mod_path)
       let version_after = updated.dependency_version(name).unwrap_or("unknown")
-      println(dependency.version_change(version_after))
+      println(
+        version_change_message(
+          dependency.name,
+          dependency.version,
+          version_after,
+        ),
+      )
       continue
     }
     println(failure)

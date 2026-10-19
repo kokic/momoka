@@ -127,31 +127,26 @@ pub fn init_command() -> @argparse.Command {
 }
 
 ///|
+fn module_paths_command(name : String, about : String) -> @argparse.Command {
+  @argparse.Command(name, about~, positionals=[
+    @argparse.PositionArg(
+      "path",
+      about="Module directory paths [default: current directory].",
+      num_args=@argparse.ValueRange(lower=0),
+    ),
+  ])
+}
+
+///|
 pub fn bump_command() -> @argparse.Command {
-  @argparse.Command(
-    "bump",
-    about="Bump the patch version of the module in moon.mod.",
-    positionals=[
-      @argparse.PositionArg(
-        "path",
-        about="Module directory paths [default: current directory].",
-        num_args=@argparse.ValueRange(lower=0),
-      ),
-    ],
+  module_paths_command(
+    "bump", "Bump the patch version of the module in moon.mod.",
   )
 }
 
 ///|
 pub fn upgrade_command() -> @argparse.Command {
-  @argparse.Command(
-    "upgrade",
-    about="Upgrade all dependencies of the modules to their latest versions.",
-    positionals=[
-      @argparse.PositionArg(
-        "path",
-        about="Module directory paths [default: current directory].",
-        num_args=@argparse.ValueRange(lower=0),
-      ),
-    ],
+  module_paths_command(
+    "upgrade", "Upgrade all dependencies of the modules to their latest versions.",
   )
 }

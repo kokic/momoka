@@ -47,4 +47,18 @@ fn ProjectTarget::success_message(
 }
 
 ///|
+fn version_change_message(
+  name : String,
+  version_before : String,
+  version_after : String,
+) -> String {
+  let colored_before = @chalk.chalk().modifier(Dim).render(version_before)
+  guard version_after != version_before else {
+    return "\{emph(name)}: \{colored_before} -> \{colored_before}"
+  }
+  let colored_after = @chalk.chalk().color(Green).render(version_after)
+  "\{emph(name)}: \{colored_before} -> \{colored_after}"
+}
+
+///|
 pub let emph : (String) -> String = s => @chalk.chalk().color(Cyan).render(s)
