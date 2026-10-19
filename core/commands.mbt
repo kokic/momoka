@@ -127,6 +127,21 @@ pub fn init_command() -> @argparse.Command {
 }
 
 ///|
+pub fn bump_command() -> @argparse.Command {
+  @argparse.Command(
+    "bump",
+    about="Bump the patch version of the module in moon.mod.",
+    positionals=[
+      @argparse.PositionArg(
+        "path",
+        about="Module directory paths [default: current directory].",
+        num_args=@argparse.ValueRange(lower=0),
+      ),
+    ],
+  )
+}
+
+///|
 pub fn upgrade_command() -> @argparse.Command {
   @argparse.Command(
     "upgrade",
