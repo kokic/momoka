@@ -62,5 +62,5 @@ async fn upgrade_project_modules(
     }
     println(failure)
   }
-  "upgraded \{dependencies.length()} dependencies in \{project_dir}"
+  "upgraded dependencies in \{emph(project_dir)}"
 }
