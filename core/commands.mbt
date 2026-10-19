@@ -157,3 +157,8 @@ pub fn evol_command() -> @argparse.Command {
     "evol", "Upgrade dependencies, bump the patch version, then run `moon check`.",
   )
 }
+
+///|
+pub fn pin_command() -> @argparse.Command {
+  module_paths_command("pin", "Stage all changes, commit a snapshot, and push.")
+}

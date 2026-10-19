@@ -16,6 +16,7 @@ priv enum CliRequest {
   Upgrade(Array[String])
   Bump(Array[String])
   Evol(Array[String])
+  Pin(Array[String])
   Stable
   Nightly
   Preferences(PreferencesRequest)
@@ -79,6 +80,7 @@ fn CliRequest::from_matches(
     "upgrade" => Upgrade(submatches.values.get("path").unwrap_or(["."]))
     "bump" => Bump(submatches.values.get("path").unwrap_or(["."]))
     "evol" => Evol(submatches.values.get("path").unwrap_or(["."]))
+    "pin" => Pin(submatches.values.get("path").unwrap_or(["."]))
     "stable" => Stable
     "nightly" => Nightly
     "cfg" => decode_preferences_request(submatches)
@@ -97,6 +99,7 @@ fn cli_commands() -> Array[@argparse.Command] {
     @core.upgrade_command(),
     @core.bump_command(),
     @core.evol_command(),
+    @core.pin_command(),
     @argparse.Command("stable", about="Install the stable MoonBit toolchain."),
     @argparse.Command("nightly", about="Install the nightly MoonBit toolchain."),
     preferences_command(),
