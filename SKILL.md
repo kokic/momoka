@@ -1,6 +1,6 @@
 ---
 name: momoka
-description: Create or initialize MoonBit modules, upgrade their dependencies, configure defaults, or install MoonBit toolchains using Momoka through moonx.
+description: Create or initialize MoonBit modules, upgrade their dependencies, bump module versions, configure defaults, or install MoonBit toolchains using Momoka through moonx.
 ---
 
 # Momoka
@@ -10,14 +10,13 @@ description: Create or initialize MoonBit modules, upgrade their dependencies, c
 | `moonx kokic/momoka -- new <path>` | Create a module in a new directory. |
 | `moonx kokic/momoka -- init [path]` | Initialize an existing directory; defaults to `./`. |
 | `moonx kokic/momoka -- upgrade [path...]` | Upgrade dependencies to their latest versions in one or more module directories; defaults to `./`. |
+| `moonx kokic/momoka -- bump [path...]` | Increment the patch version in `moon.mod` for one or more module directories; defaults to `./`. |
 | `moonx kokic/momoka -- cfg` | Configure saved defaults interactively. |
 | `moonx kokic/momoka -- cfg --show` | Print saved defaults. |
 | `moonx kokic/momoka -- stable` | Install the stable MoonBit toolchain. |
 | `moonx kokic/momoka -- nightly` | Install the nightly MoonBit toolchain. |
 
-`new` and `init` derive the module name from the username and directory basename.
-They reject existing output files; do not delete those files to force initialization.
-`upgrade` processes directories in the supplied order; each must contain `moon.mod`.
+`new` and `init` derive the module name from the username and directory basename. They reject existing output files; do not delete those files to force initialization. `upgrade` processes directories in the supplied order; each must contain `moon.mod`. `bump` reads `version = "x.y.z"` from `moon.mod` and increments `z`; it processes directories in the supplied order and leaves every other line unchanged.
 
 ## Module options
 

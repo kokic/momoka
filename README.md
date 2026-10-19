@@ -40,9 +40,11 @@ momoka cfg --show
 # upgrade all dependencies to their latest versions
 momoka upgrade
 
+# bump the patch version in moon.mod
+momoka bump
+
 # install the stable MoonBit toolchain
 momoka stable
-
 ```
 
 ## WASM
@@ -69,6 +71,7 @@ Commands:
   new      Create a new MoonBit module in a new directory.
   init     Initialize a MoonBit module in an existing directory.
   upgrade  Upgrade all dependencies of the project to their latest versions.
+  bump     Bump the patch version of the module in moon.mod.
   stable   Install the stable MoonBit toolchain.
   nightly  Install the nightly MoonBit toolchain.
   cfg      Configure default username / license / host / target, or print them.
