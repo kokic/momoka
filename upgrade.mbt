@@ -9,7 +9,9 @@ fn Dependency::version_change(
   self : Dependency,
   version_after : String,
 ) -> String {
-  "\{self.name}: \{self.version} -> \{version_after}"
+  let colored_before = @chalk.chalk().modifier(Dim).render(self.version)
+  let colored_after = @chalk.chalk().color(Green).render(version_after)
+  "\{emph(self.name)}: \{colored_before} -> \{colored_after}"
 }
 
 ///|
