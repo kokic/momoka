@@ -1,4 +1,18 @@
 ///|
+priv struct Dependency {
+  name : String
+  version : String
+}
+
+///|
+fn Dependency::version_change(
+  self : Dependency,
+  version_after : String,
+) -> String {
+  "\{self.name}: \{self.version} -> \{version_after}"
+}
+
+///|
 async fn run_upgrade_request(
   paths : ArrayView[String],
 ) -> Unit raise @core.CliError {
@@ -6,15 +20,15 @@ async fn run_upgrade_request(
     let project_dir = absolute_path(path)
     ensure_existing_dir(project_dir)
     let moon_mod_path = project_file_path(project_dir, "moon.mod")
-    let mod_names = import_modules_from_moon_mod(moon_mod_path)
-    println(upgrade_project_modules(project_dir, mod_names))
+    let dependencies = imported_modules_from_moon_mod(moon_mod_path)
+    println(upgrade_project_modules(project_dir, moon_mod_path, dependencies))
   }
 }
 
 ///|
-async fn import_modules_from_moon_mod(
+async fn imported_modules_from_moon_mod(
   moon_mod_path : String,
-) -> Array[String] raise @core.CliError {
+) -> Array[Dependency] raise @core.CliError {
   guard path_exists(moon_mod_path) else {
     raise @core.cli_error("moon.mod not found: \{moon_mod_path}")
   }
@@ -28,15 +42,15 @@ async fn import_modules_from_moon_mod(
             "failed to decode \{moon_mod_path}: \{Repr(err)}",
           )
       } noraise {
-        text => parse_import_modules(text)
+        text => parse_import_dependencies(text)
       }
   }
 }
 
 ///|
-fn parse_import_modules(content : String) -> Array[String] {
+fn parse_import_dependencies(content : String) -> Array[Dependency] {
   let mut in_import = false
-  let mod_names : Array[String] = []
+  let dependencies : Array[Dependency] = []
   for raw_line in content.split("\n") {
     let line = raw_line.trim().to_owned()
     if !in_import {
@@ -49,13 +63,13 @@ fn parse_import_modules(content : String) -> Array[String] {
       }
       continue
     }
-    guard module_name_from_import(entry) is Some(mod_name) else { continue }
-    mod_names.push(mod_name)
+    guard dependency_from_import(entry) is Some(dependency) else { continue }
+    dependencies.push(dependency)
     if line.contains("}") {
       in_import = false
     }
   }
-  mod_names
+  dependencies
 }
 
 ///|
@@ -67,23 +81,36 @@ fn quoted_import_content(line : String) -> String? {
 }
 
 ///|
-fn module_name_from_import(entry : String) -> String? {
+fn dependency_from_import(entry : String) -> Dependency? {
   guard !entry.has_prefix(".") &&
     !entry.has_prefix("/") &&
     !entry.contains("://") else {
     None
   }
   match entry.split_once("@") {
-    Some((name, _)) if !name.is_empty() => Some(name.to_owned())
-    None => Some(entry)
+    Some((name, version)) if !name.is_empty() && !version.is_empty() =>
+      Some({ name: name.to_owned(), version: version.to_owned(), })
+    None if !entry.is_empty() => Some({ name: entry, version: "unknown", })
     _ => None
   }
 }
 
 ///|
+fn dependency_version(
+  dependencies : ArrayView[Dependency],
+  name : String,
+) -> String? {
+  for dependency in dependencies {
+    guard dependency.name == name else { continue }
+    return Some(dependency.version)
+  }
+  None
+}
+
+///|
 fn upgrade_outcome_message(
   name : String,
-  outcome : Result[Int, String],
+  outcome : Result[Int32, String],
 ) -> String? {
   match outcome {
     Err(message) =>
@@ -100,13 +127,15 @@ fn upgrade_outcome_message(
 ///|
 async fn upgrade_project_modules(
   project_dir : String,
-  mod_names : ArrayView[String],
+  moon_mod_path : String,
+  dependencies : ArrayView[Dependency],
 ) -> String raise @core.CliError {
-  if mod_names.is_empty() {
+  if dependencies.is_empty() {
     return "no dependencies to upgrade in \{project_dir}"
   }
   let failures : Array[String] = []
-  for name in mod_names {
+  for dependency in dependencies {
+    let name = dependency.name
     let outcome = try
       @process.run("moon", ["add", name, "--upgrade"], cwd=project_dir)
     catch {
@@ -115,14 +144,17 @@ async fn upgrade_project_modules(
       status => Ok(status)
     }
     guard upgrade_outcome_message(name, outcome) is Some(failure) else {
+      let updated = imported_modules_from_moon_mod(moon_mod_path)
+      let version_after = dependency_version(updated, name).unwrap_or("unknown")
+      println(dependency.version_change(version_after))
       continue
     }
     failures.push(failure)
   }
   guard failures.is_empty() else {
     raise @core.cli_error(
-      "failed to upgrade \{failures.length()} of \{mod_names.length()} dependencies: \{failures.join("; ")}",
+      "failed to upgrade \{failures.length()} of \{dependencies.length()} dependencies: \{failures.join("; ")}",
     )
   }
-  "upgraded \{mod_names.length()} dependencies in \{project_dir}: \{mod_names.join(", ")}"
+  "upgraded \{dependencies.length()} dependencies in \{project_dir}"
 }

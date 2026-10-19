@@ -1,8 +1,10 @@
 ///|
-const MAX_USERNAME_RETRIES : Int = 5
+const MAX_USERNAME_RETRIES : Int32 = 5
 
 ///|
-async fn prompt_username(remaining_retry : Int) -> String raise @core.CliError {
+async fn prompt_username(
+  remaining_retry : Int32,
+) -> String raise @core.CliError {
   guard remaining_retry > 0 else {
     raise @core.cli_error("failed to read username from stdin")
   }
