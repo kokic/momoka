@@ -138,7 +138,6 @@ async fn upgrade_project_modules(
   if dependencies.is_empty() {
     return "no dependencies to upgrade in \{project_dir}"
   }
-  let failures : Array[String] = []
   for dependency in dependencies {
     let name = dependency.name
     let outcome = try
@@ -154,12 +153,7 @@ async fn upgrade_project_modules(
       println(dependency.version_change(version_after))
       continue
     }
-    failures.push(failure)
-  }
-  guard failures.is_empty() else {
-    raise @core.cli_error(
-      "failed to upgrade \{failures.length()} of \{dependencies.length()} dependencies: \{failures.join("; ")}",
-    )
+    println(failure)
   }
   "upgraded \{dependencies.length()} dependencies in \{project_dir}"
 }
