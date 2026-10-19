@@ -147,15 +147,13 @@ pub fn bump_command() -> @argparse.Command {
 ///|
 pub fn upgrade_command() -> @argparse.Command {
   module_paths_command(
-    "upgrade",
-    "Upgrade all dependencies of the modules to their latest versions.",
+    "upgrade", "Upgrade all dependencies of the modules to their latest versions.",
   )
 }
 
 ///|
 pub fn evol_command() -> @argparse.Command {
   module_paths_command(
-    "evol",
-    "Upgrade dependencies, bump the patch version, then run `moon check`.",
+    "evol", "Upgrade dependencies, bump the patch version, then run `moon check`.",
   )
 }
