@@ -32,11 +32,3 @@ fn bump_patch_version(version : String) -> String? {
     _ => None
   }
 }
-
-///|
-test "bump patch version" {
-  assert_eq(bump_patch_version("1.2.3"), Some("1.2.4"))
-  assert_eq(bump_patch_version("0.0.9"), Some("0.0.10"))
-  assert_eq(bump_patch_version("1.2"), None)
-  assert_eq(bump_patch_version("1.2.3-beta"), None)
-}

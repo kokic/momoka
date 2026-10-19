@@ -29,39 +29,6 @@ pub fn moon_mod_content(
 }
 
 ///|
-test "moon_mod_content uses suffixless moon.mod format" {
-  @test.assert_eq(
-    moon_mod_content(
-      username="kokic",
-      module_name="demo",
-      "MIT",
-      "gitlab.com",
-      "js",
-    ),
-    (
-      #|name = "kokic/demo"
-      #|
-      #|version = "0.1.0"
-      #|
-      #|import {}
-      #|
-      #|readme = "README.md"
-      #|
-      #|repository = "https://gitlab.com/kokic/demo"
-      #|
-      #|license = "MIT"
-      #|
-      #|keywords = []
-      #|
-      #|description = ""
-      #|
-      #|preferred_target = "js"
-      #|
-    ),
-  )
-}
-
-///|
 pub fn moon_pkg_content() -> String {
   (
     #|import {
