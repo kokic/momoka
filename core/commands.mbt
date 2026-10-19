@@ -1,4 +1,7 @@
 ///|
+pub const VERSION : String = "0.7.2"
+
+///|
 pub const DEFAULT_LICENSE : String = "Apache-2.0"
 
 ///|
@@ -6,9 +9,6 @@ pub const DEFAULT_HOST : String = "github.com"
 
 ///|
 pub const DEFAULT_TARGET : String = "native"
-
-///|
-pub const VERSION : String = "0.7.1"
 
 ///|
 pub enum ProjectMode {
