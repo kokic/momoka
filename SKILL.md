@@ -11,12 +11,13 @@ description: Create or initialize MoonBit modules, upgrade their dependencies, b
 | `moonx kokic/momoka -- init [path]` | Initialize an existing directory; defaults to `./`. |
 | `moonx kokic/momoka -- upgrade [path...]` | Upgrade dependencies to their latest versions in one or more module directories; defaults to `./`. |
 | `moonx kokic/momoka -- bump [path...]` | Increment the patch version in `moon.mod` for one or more module directories; defaults to `./`. |
+| `moonx kokic/momoka -- evol [path...]` | Run `upgrade`, then `bump`, then `moon check` for one or more module directories; defaults to `./`. |
 | `moonx kokic/momoka -- cfg` | Configure saved defaults interactively. |
 | `moonx kokic/momoka -- cfg --show` | Print saved defaults. |
 | `moonx kokic/momoka -- stable` | Install the stable MoonBit toolchain. |
 | `moonx kokic/momoka -- nightly` | Install the nightly MoonBit toolchain. |
 
-`new` and `init` derive the module name from the username and directory basename. They reject existing output files; do not delete those files to force initialization. `upgrade` processes directories in the supplied order; each must contain `moon.mod`. `bump` reads `version = "x.y.z"` from `moon.mod` and increments `z`; it processes directories in the supplied order and leaves every other line unchanged.
+`new` and `init` derive the module name from the username and directory basename. They reject existing output files; do not delete those files to force initialization. `upgrade` processes directories in the supplied order; each must contain `moon.mod`. `bump` reads `version = "x.y.z"` from `moon.mod` and increments `z`; it processes directories in the supplied order and leaves every other line unchanged. `evol` upgrades dependencies, bumps the patch version, then runs `moon check`, forwarding the check output.
 
 ## Module options
 

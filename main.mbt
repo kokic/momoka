@@ -13,6 +13,7 @@ async fn CliRequest::execute(self : CliRequest) -> Unit raise @core.CliError {
     Project(config) => config.execute()
     Upgrade(paths) => run_upgrade_request(paths)
     Bump(paths) => run_bump_request(paths)
+    Evol(paths) => run_evol_request(paths)
     Stable => run_install_request(nightly=false)
     Nightly => run_install_request(nightly=true)
     Preferences(Configure) => configure_preferred_defaults()
