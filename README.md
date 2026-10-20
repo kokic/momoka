@@ -53,6 +53,9 @@ momoka pin
 momoka stable
 ```
 
+`upgrade`, `bump`, and `evol` look for `moon.mod` in each directory. When it is
+missing, they read `moon.work` and process every `members` entry as a module.
+
 ## WASM
 
 The `wasm` build supports `new` and `init` only. It never reads or writes

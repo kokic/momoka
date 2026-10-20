@@ -18,7 +18,7 @@ description: Create or initialize MoonBit modules, upgrade their dependencies, b
 | `moonx kokic/momoka -- stable` | Install the stable MoonBit toolchain. |
 | `moonx kokic/momoka -- nightly` | Install the nightly MoonBit toolchain. |
 
-`new` and `init` derive the module name from the username and directory basename. They reject existing output files; do not delete those files to force initialization. `upgrade` processes directories in the supplied order; each must contain `moon.mod`. `bump` reads `version = "x.y.z"` from `moon.mod` and increments `z`; it processes directories in the supplied order and leaves every other line unchanged. `evol` upgrades dependencies, bumps the patch version only when at least one dependency version changed, then runs `moon check`, forwarding the check output. `pin` stages all changes, creates a `chore: snapshot update` commit, and pushes.
+`new` and `init` derive the module name from the username and directory basename. They reject existing output files; do not delete those files to force initialization. `upgrade`, `bump`, and `evol` process directories in the supplied order. When a directory has no `moon.mod`, they read its `moon.work` and process every `members` entry as a module instead. `bump` reads `version = "x.y.z"` from `moon.mod` and increments `z`; it processes directories in the supplied order and leaves every other line unchanged. `evol` upgrades dependencies, bumps the patch version only when at least one dependency version changed, then runs `moon check`, forwarding the check output. `pin` stages all changes, creates a `chore: snapshot update` commit, and pushes.
 
 ## Module options
 

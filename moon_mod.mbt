@@ -25,14 +25,7 @@ async fn read_moon_mod(moon_mod_path : String) -> MoonMod raise @core.CliError {
   guard path_exists(moon_mod_path) else {
     raise @core.cli_error("moon.mod not found: \{moon_mod_path}")
   }
-  let content = @fs.read_file(moon_mod_path) catch {
-    err => raise @core.cli_error("failed to read \{moon_mod_path}: \{err}")
-  }
-  let text = content.text() catch {
-    err =>
-      raise @core.cli_error("failed to decode \{moon_mod_path}: \{Repr(err)}")
-  }
-  MoonMod::parse(text)
+  MoonMod::parse(read_string_file(moon_mod_path))
 }
 
 ///|

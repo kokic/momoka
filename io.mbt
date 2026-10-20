@@ -35,6 +35,16 @@ async fn ensure_dir_recursive(path : String) -> Unit raise @core.CliError {
 }
 
 ///|
+async fn read_string_file(path : String) -> String raise @core.CliError {
+  let content = @fs.read_file(path) catch {
+    err => raise @core.cli_error("failed to read \{path}: \{err}")
+  }
+  content.text() catch {
+    err => raise @core.cli_error("failed to decode \{path}: \{Repr(err)}")
+  }
+}
+
+///|
 async fn write_new_string_file(
   path : String,
   content : String,

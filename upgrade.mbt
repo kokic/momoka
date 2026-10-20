@@ -8,14 +8,19 @@ priv struct UpgradeReport {
 async fn run_upgrade_request(
   paths : ArrayView[String],
 ) -> Bool raise @core.CliError {
+  upgrade_modules(resolve_module_dirs(paths))
+}
+
+///|
+async fn upgrade_modules(
+  module_dirs : ArrayView[String],
+) -> Bool raise @core.CliError {
   let mut changed = false
-  for path in paths {
-    let project_dir = absolute_path(path)
-    ensure_existing_dir(project_dir)
-    let moon_mod_path = project_file_path(project_dir, "moon.mod")
+  for module_dir in module_dirs {
+    let moon_mod_path = project_file_path(module_dir, "moon.mod")
     let moon_mod = read_moon_mod(moon_mod_path)
     let report = upgrade_project_modules(
-      project_dir,
+      module_dir,
       moon_mod_path,
       moon_mod.dependencies,
     )
