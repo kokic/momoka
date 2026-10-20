@@ -2,8 +2,11 @@
 async fn run_evol_request(
   paths : ArrayView[String],
 ) -> Unit raise @core.CliError {
-  run_upgrade_request(paths)
-  run_bump_request(paths)
+  if run_upgrade_request(paths) {
+    run_bump_request(paths)
+  } else {
+    println("no dependency versions changed; skipped bump")
+  }
   for path in paths {
     let project_dir = absolute_path(path)
     ensure_existing_dir(project_dir)

@@ -1,16 +1,28 @@
 ///|
+priv struct UpgradeReport {
+  message : String
+  changed : Bool
+}
+
+///|
 async fn run_upgrade_request(
   paths : ArrayView[String],
-) -> Unit raise @core.CliError {
+) -> Bool raise @core.CliError {
+  let mut changed = false
   for path in paths {
     let project_dir = absolute_path(path)
     ensure_existing_dir(project_dir)
     let moon_mod_path = project_file_path(project_dir, "moon.mod")
     let moon_mod = read_moon_mod(moon_mod_path)
-    println(
-      upgrade_project_modules(project_dir, moon_mod_path, moon_mod.dependencies),
+    let report = upgrade_project_modules(
+      project_dir,
+      moon_mod_path,
+      moon_mod.dependencies,
     )
+    println(report.message)
+    changed = report.changed || changed
   }
+  changed
 }
 
 ///|
@@ -35,10 +47,14 @@ async fn upgrade_project_modules(
   project_dir : String,
   moon_mod_path : String,
   dependencies : ArrayView[Dependency],
-) -> String raise @core.CliError {
+) -> UpgradeReport raise @core.CliError {
   if dependencies.is_empty() {
-    return "no dependencies to upgrade in \{project_dir}"
+    return {
+      message: "no dependencies to upgrade in \{project_dir}",
+      changed: false,
+    }
   }
+  let mut changed = false
   for dependency in dependencies {
     let name = dependency.name
     let outcome = try
@@ -51,6 +67,7 @@ async fn upgrade_project_modules(
     guard upgrade_outcome_message(name, outcome) is Some(failure) else {
       let updated = read_moon_mod(moon_mod_path)
       let version_after = updated.dependency_version(name).unwrap_or("unknown")
+      changed = changed || version_after != dependency.version
       println(
         version_change_message(
           dependency.name,
@@ -62,5 +79,5 @@ async fn upgrade_project_modules(
     }
     println(failure)
   }
-  "upgraded dependencies in \{emph(project_dir)}"
+  { message: "upgraded dependencies in \{emph(project_dir)}", changed, }
 }

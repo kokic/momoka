@@ -43,7 +43,7 @@ momoka upgrade
 # bump the patch version in moon.mod
 momoka bump
 
-# upgrade dependencies, bump the patch version, then run moon check
+# upgrade dependencies, bump the patch version if any changed, then run moon check
 momoka evol
 
 # stage all changes, commit a snapshot, and push
@@ -78,7 +78,7 @@ Commands:
   init     Initialize a MoonBit module in an existing directory.
   upgrade  Upgrade all dependencies of the project to their latest versions.
   bump     Bump the patch version of the module in moon.mod.
-  evol     Upgrade dependencies, bump the patch version, then run moon check.
+  evol     Upgrade dependencies, bump the patch version if any changed, then run moon check.
   pin      Stage all changes, commit a snapshot, and push.
   stable   Install the stable MoonBit toolchain.
   nightly  Install the nightly MoonBit toolchain.

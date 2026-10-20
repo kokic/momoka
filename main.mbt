@@ -11,7 +11,7 @@ async fn main {
 async fn CliRequest::execute(self : CliRequest) -> Unit raise @core.CliError {
   match self {
     Project(config) => config.execute()
-    Upgrade(paths) => run_upgrade_request(paths)
+    Upgrade(paths) => ignore(run_upgrade_request(paths))
     Bump(paths) => run_bump_request(paths)
     Evol(paths) => run_evol_request(paths)
     Pin(paths) => run_pin_request(paths)
