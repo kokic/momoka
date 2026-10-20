@@ -6,9 +6,10 @@ const EVOL_PR_BODY : String = "Update all module dependencies to their latest ve
 
 ///|
 async fn EvolConfig::execute(self : EvolConfig) -> Unit raise @core.CliError {
+  let project_dirs = self.project_dirs()
   let module_dirs = resolve_module_dirs(self.paths)
   if self.create_pr {
-    self.create_branch()
+    create_branches(project_dirs)
   }
   if upgrade_modules(module_dirs) {
     bump_modules(module_dirs)
@@ -16,7 +17,7 @@ async fn EvolConfig::execute(self : EvolConfig) -> Unit raise @core.CliError {
     println("no dependency versions changed; skipped bump")
   }
   check_modules(module_dirs)
-  self.commit_changes()
+  commit_changes(project_dirs, self.create_pr)
 }
 
 ///|
@@ -31,11 +32,11 @@ fn EvolConfig::project_dirs(
 }
 
 ///|
-async fn EvolConfig::create_branch(
-  self : EvolConfig,
+async fn create_branches(
+  project_dirs : ArrayView[String],
 ) -> Unit raise @core.CliError {
-  for project_dir in self.project_dirs() {
-    run_git(project_dir, ["checkout", "-b", "update-dependencies"])
+  for project_dir in project_dirs {
+    run_program("git", ["checkout", "-b", "update-dependencies"], project_dir)
   }
 }
 
@@ -54,18 +55,23 @@ async fn check_modules(
 }
 
 ///|
-async fn EvolConfig::commit_changes(
-  self : EvolConfig,
+async fn commit_changes(
+  project_dirs : ArrayView[String],
+  create_pr : Bool,
 ) -> Unit raise @core.CliError {
-  for project_dir in self.project_dirs() {
-    run_git(project_dir, ["add", "."])
+  for project_dir in project_dirs {
+    run_program("git", ["add", "."], project_dir)
     guard has_staged_changes(project_dir) else {
       println("no changes to commit in \{project_dir}; skipped commit")
       continue
     }
-    run_git(project_dir, ["commit", "-m", EVOL_COMMIT_MESSAGE])
-    guard self.create_pr else { continue }
-    run_git(project_dir, ["push", "-u", "origin", "update-dependencies"])
+    run_program("git", ["commit", "-m", EVOL_COMMIT_MESSAGE], project_dir)
+    guard create_pr else { continue }
+    run_program(
+      "git",
+      ["push", "-u", "origin", "update-dependencies"],
+      project_dir,
+    )
     run_program(
       "gh",
       [

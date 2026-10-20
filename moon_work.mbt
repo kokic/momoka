@@ -19,9 +19,8 @@ fn parse_work_members(content : String) -> Array[String] {
   for raw_line in content.split("\n") {
     let line = raw_line.trim()
     if !in_members {
-      if line.has_prefix("members") {
-        in_members = true
-      }
+      guard line.has_prefix("members") else { continue }
+      in_members = true
       continue
     }
     guard !line.has_prefix("]") else { break }

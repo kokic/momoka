@@ -19,7 +19,7 @@ async fn upgrade_modules(
   for module_dir in module_dirs {
     let moon_mod_path = project_file_path(module_dir, "moon.mod")
     let moon_mod = read_moon_mod(moon_mod_path)
-    let report = upgrade_project_modules(
+    let report = upgrade_module(
       module_dir,
       moon_mod_path,
       moon_mod.dependencies,
@@ -48,14 +48,14 @@ fn upgrade_outcome_message(
 }
 
 ///|
-async fn upgrade_project_modules(
-  project_dir : String,
+async fn upgrade_module(
+  module_dir : String,
   moon_mod_path : String,
   dependencies : ArrayView[Dependency],
 ) -> UpgradeReport raise @core.CliError {
   if dependencies.is_empty() {
     return {
-      message: "no dependencies to upgrade in \{project_dir}",
+      message: "no dependencies to upgrade in \{module_dir}",
       changed: false,
     }
   }
@@ -63,7 +63,7 @@ async fn upgrade_project_modules(
   for dependency in dependencies {
     let name = dependency.name
     let outcome = try
-      @process.run("moon", ["add", name, "--upgrade"], cwd=project_dir)
+      @process.run("moon", ["add", name, "--upgrade"], cwd=module_dir)
     catch {
       err => Err("\{err}")
     } noraise {
@@ -84,5 +84,5 @@ async fn upgrade_project_modules(
     }
     println(failure)
   }
-  { message: "upgraded dependencies in \{emph(project_dir)}", changed, }
+  { message: "upgraded dependencies in \{emph(module_dir)}", changed, }
 }

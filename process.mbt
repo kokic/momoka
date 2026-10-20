@@ -12,11 +12,3 @@ async fn run_program(
     raise @core.cli_error("`\{command}` failed with exit code \{status}")
   }
 }
-
-///|
-async fn run_git(
-  project_dir : String,
-  args : Array[String],
-) -> Unit raise @core.CliError {
-  run_program("git", args, project_dir)
-}

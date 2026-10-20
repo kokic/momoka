@@ -47,20 +47,20 @@ fn decode_init_request(matches : @argparse.Matches) -> CliRequest {
 }
 
 ///|
+fn decode_evol_request(matches : @argparse.Matches) -> CliRequest {
+  Evol({
+    paths: matches.values.get("path").unwrap_or(["."]),
+    create_pr: matches.flags.get("pr").unwrap_or(false),
+  })
+}
+
+///|
 fn decode_preferences_request(matches : @argparse.Matches) -> CliRequest {
   if matches.flags.get("show").unwrap_or(false) {
     Preferences(Show)
   } else {
     Preferences(Configure)
   }
-}
-
-///|
-fn decode_evol_request(matches : @argparse.Matches) -> CliRequest {
-  Evol({
-    paths: matches.values.get("path").unwrap_or(["."]),
-    create_pr: matches.flags.get("pr").unwrap_or(false),
-  })
 }
 
 ///|
