@@ -10,17 +10,3 @@ async fn run_pin_request(
     run_git(project_dir, ["push"])
   }
 }
-
-///|
-async fn run_git(
-  project_dir : String,
-  args : Array[String],
-) -> Unit raise @core.CliError {
-  let command = "git \{args.join(" ")}"
-  let status = @process.run("git", args, cwd=project_dir) catch {
-    err => raise @core.cli_error("failed to run `\{command}`: \{err}")
-  }
-  guard status == 0 else {
-    raise @core.cli_error("`\{command}` failed with exit code \{status}")
-  }
-}

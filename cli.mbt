@@ -5,6 +5,12 @@ priv struct CliConfig {
 }
 
 ///|
+priv struct EvolConfig {
+  paths : Array[String]
+  create_pr : Bool
+}
+
+///|
 priv enum PreferencesRequest {
   Configure
   Show
@@ -15,7 +21,7 @@ priv enum CliRequest {
   Project(CliConfig)
   Upgrade(Array[String])
   Bump(Array[String])
-  Evol(Array[String])
+  Evol(EvolConfig)
   Pin(Array[String])
   Stable
   Nightly
@@ -50,6 +56,14 @@ fn decode_preferences_request(matches : @argparse.Matches) -> CliRequest {
 }
 
 ///|
+fn decode_evol_request(matches : @argparse.Matches) -> CliRequest {
+  Evol({
+    paths: matches.values.get("path").unwrap_or(["."]),
+    create_pr: matches.flags.get("pr").unwrap_or(false),
+  })
+}
+
+///|
 fn CliRequest::parse(
   args : ArrayView[String],
 ) -> CliRequest raise @core.CliError {
@@ -79,7 +93,7 @@ fn CliRequest::from_matches(
     "init" => decode_init_request(submatches)
     "upgrade" => Upgrade(submatches.values.get("path").unwrap_or(["."]))
     "bump" => Bump(submatches.values.get("path").unwrap_or(["."]))
-    "evol" => Evol(submatches.values.get("path").unwrap_or(["."]))
+    "evol" => decode_evol_request(submatches)
     "pin" => Pin(submatches.values.get("path").unwrap_or(["."]))
     "stable" => Stable
     "nightly" => Nightly

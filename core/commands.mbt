@@ -127,8 +127,12 @@ pub fn init_command() -> @argparse.Command {
 }
 
 ///|
-fn module_paths_command(name : String, about : String) -> @argparse.Command {
-  @argparse.Command(name, about~, positionals=[
+fn module_paths_command(
+  name : String,
+  about : String,
+  flags~ : ArrayView[@argparse.FlagArg] = [],
+) -> @argparse.Command {
+  @argparse.Command(name, about~, flags~, positionals=[
     @argparse.PositionArg(
       "path",
       about="Module directory paths [default: current directory].",
@@ -154,7 +158,15 @@ pub fn upgrade_command() -> @argparse.Command {
 ///|
 pub fn evol_command() -> @argparse.Command {
   module_paths_command(
-    "evol", "Upgrade dependencies and bump the patch version when versions change, then run `moon check`.",
+    "evol",
+    "Upgrade dependencies and bump patch versions when versions change, run `moon check`, then commit; `--pr` pushes a branch and opens a draft pull request.",
+    flags=[
+      @argparse.FlagArg(
+        "pr",
+        long="pr",
+        about="Create a branch, push the commit, and open a draft pull request.",
+      ),
+    ],
   )
 }
 

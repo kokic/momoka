@@ -11,14 +11,14 @@ description: Create or initialize MoonBit modules, upgrade their dependencies, b
 | `moonx kokic/momoka -- init [path]` | Initialize an existing directory; defaults to `./`. |
 | `moonx kokic/momoka -- upgrade [path...]` | Upgrade dependencies to their latest versions in one or more module directories; defaults to `./`. |
 | `moonx kokic/momoka -- bump [path...]` | Increment the patch version in `moon.mod` for one or more module directories; defaults to `./`. |
-| `moonx kokic/momoka -- evol [path...]` | Run `upgrade`, then `bump` when any dependency version changed, then `moon check` for one or more module directories; defaults to `./`. |
+| `moonx kokic/momoka -- evol [path...]` | Run `upgrade`, then `bump` when any dependency version changed, then `moon check`, then commit; add `--pr` to push a branch and open a draft pull request. Defaults to `./`. |
 | `moonx kokic/momoka -- pin [path...]` | Run `git add .`, commit `chore: snapshot update`, and `git push` for one or more module directories; defaults to `./`. |
 | `moonx kokic/momoka -- cfg` | Configure saved defaults interactively. |
 | `moonx kokic/momoka -- cfg --show` | Print saved defaults. |
 | `moonx kokic/momoka -- stable` | Install the stable MoonBit toolchain. |
 | `moonx kokic/momoka -- nightly` | Install the nightly MoonBit toolchain. |
 
-`new` and `init` derive the module name from the username and directory basename. They reject existing output files; do not delete those files to force initialization. `upgrade`, `bump`, and `evol` process directories in the supplied order. When a directory has no `moon.mod`, they read its `moon.work` and process every `members` entry as a module instead. `bump` reads `version = "x.y.z"` from `moon.mod` and increments `z`; it processes directories in the supplied order and leaves every other line unchanged. `evol` upgrades dependencies, bumps the patch version only when at least one dependency version changed, then runs `moon check`, forwarding the check output. `pin` stages all changes, creates a `chore: snapshot update` commit, and pushes.
+`new` and `init` derive the module name from the username and directory basename. They reject existing output files; do not delete those files to force initialization. `upgrade`, `bump`, and `evol` process directories in the supplied order. When a directory has no `moon.mod`, they read its `moon.work` and process every `members` entry as a module instead. `bump` reads `version = "x.y.z"` from `moon.mod` and increments `z`; it processes directories in the supplied order and leaves every other line unchanged. `evol` upgrades dependencies, bumps the patch version only when at least one dependency version changed, then runs `moon check`, forwarding the check output. After a successful check, `evol` stages all changes and commits `chore: update dependencies and bump module patch versions`; with `--pr` it first creates and checks out `update-dependencies`, then pushes that branch and opens a draft pull request with the same title. `pin` stages all changes, creates a `chore: snapshot update` commit, and pushes.
 
 ## Module options
 

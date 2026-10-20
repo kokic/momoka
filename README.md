@@ -43,8 +43,11 @@ momoka upgrade
 # bump the patch version in moon.mod
 momoka bump
 
-# upgrade dependencies, bump the patch version if any changed, then run moon check
+# upgrade dependencies, bump the patch version if any changed, run moon check, then commit
 momoka evol
+
+# same, on an update-dependencies branch, then push it and open a draft pull request
+momoka evol --pr
 
 # stage all changes, commit a snapshot, and push
 momoka pin
