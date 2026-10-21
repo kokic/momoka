@@ -49,6 +49,9 @@ momoka evol
 # same, and when dependencies changed, commit on an update-dependencies branch and open a draft PR
 momoka evol --pr
 
+# process modules from separate repositories independently, continuing after failures
+momoka evol --orphan ../first-module ../second-module
+
 # stage all changes, commit a snapshot, and push
 momoka pin
 
@@ -58,6 +61,15 @@ momoka stable
 
 `upgrade`, `bump`, and `evol` look for `moon.mod` in each directory. When it is
 missing, they read `moon.work` and process every `members` entry as a module.
+
+`evol` treats all selected modules as one repository, whether selected explicitly
+or through `moon.work`. If any dependency changes, it bumps every selected module.
+It checks all selected modules before making a single commit at the repository
+root. With `--orphan`, each module is treated as a separate repository: only its
+own dependency changes trigger a bump, and a failure does not prevent other
+modules from being processed and committed. The command exits with an error if
+any module failed. With `--pr`, each successful PR creation is followed by
+`git checkout main`.
 
 ## WASM
 

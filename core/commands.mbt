@@ -166,6 +166,11 @@ pub fn evol_command() -> @argparse.Command {
         long="pr",
         about="Create a branch when dependencies change, push the commit, and open a draft pull request.",
       ),
+      @argparse.FlagArg(
+        "orphan",
+        long="orphan",
+        about="Treat each module as a separate repository; bump and commit independently, continuing after failures.",
+      ),
     ],
   )
 }

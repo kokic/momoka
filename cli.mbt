@@ -8,6 +8,13 @@ priv struct CliConfig {
 priv struct EvolConfig {
   paths : Array[String]
   create_pr : Bool
+  scope : EvolScope
+}
+
+///|
+priv enum EvolScope {
+  SharedRepository
+  IndependentModules
 }
 
 ///|
@@ -51,6 +58,11 @@ fn decode_evol_request(matches : @argparse.Matches) -> CliRequest {
   Evol({
     paths: matches.values.get("path").unwrap_or(["."]),
     create_pr: matches.flags.get("pr").unwrap_or(false),
+    scope: if matches.flags.get("orphan").unwrap_or(false) {
+      IndependentModules
+    } else {
+      SharedRepository
+    },
   })
 }
 

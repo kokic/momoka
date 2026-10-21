@@ -2,49 +2,80 @@
 const EVOL_COMMIT_MESSAGE : String = "chore: update dependencies and bump module patch versions"
 
 ///|
-const EVOL_PR_BODY : String = "Update all module dependencies to their latest versions. Bump patch versions only for modules whose dependencies changed. All modules pass `moon check`."
+const EVOL_PR_BODY : String = "Update the selected modules' dependencies to their latest versions. Bump patch versions for all selected modules when any dependency changed. All selected modules pass `moon check`."
 
 ///|
 async fn EvolConfig::execute(self : EvolConfig) -> Unit raise @core.CliError {
-  let project_dirs = self.project_dirs()
   let module_dirs = resolve_module_dirs(self.paths)
+  match self.scope {
+    SharedRepository => evolve_repository(module_dirs, self.create_pr)
+    IndependentModules => {
+      let failures : Array[String] = []
+      for module_dir in module_dirs {
+        evolve_repository([module_dir], self.create_pr) catch {
+          err => {
+            println("evol failed in \{module_dir}: \{Repr(err)}")
+            failures.push(module_dir)
+          }
+        }
+      }
+      guard failures.is_empty() else {
+        raise @core.cli_error("evol failed for modules: \{failures.join(", ")}")
+      }
+    }
+  }
+}
+
+///|
+async fn evolve_repository(
+  module_dirs : ArrayView[String],
+  create_pr : Bool,
+) -> Unit raise @core.CliError {
+  guard module_dirs.length() > 0 else { return }
+  let project_dir = repository_dir(module_dirs[0])
   let dependencies_changed = upgrade_modules(module_dirs)
   if dependencies_changed {
-    if self.create_pr {
-      create_branches(project_dirs)
+    if create_pr {
+      run_program("git", ["checkout", "-b", "update-dependencies"], project_dir)
     }
     bump_modules(module_dirs)
   } else {
     println("no dependency versions changed; skipped bump")
   }
   check_modules(module_dirs)
-  if self.create_pr {
+  if create_pr {
     guard dependencies_changed else {
       println("no dependency versions changed; skipped commit")
       return
     }
   }
-  commit_changes(project_dirs, self.create_pr)
+  commit_repository(project_dir, create_pr)
 }
 
 ///|
-fn EvolConfig::project_dirs(
-  self : EvolConfig,
-) -> Array[String] raise @core.CliError {
-  let project_dirs : Array[String] = []
-  for path in self.paths {
-    project_dirs.push(absolute_path(path))
+async fn repository_dir(module_dir : String) -> String raise @core.CliError {
+  let (status, output) = @process.collect_stdout(
+    "git",
+    ["rev-parse", "--show-toplevel"],
+    cwd=module_dir,
+  ) catch {
+    err =>
+      raise @core.cli_error(
+        "failed to locate repository for \{module_dir}: \{err}",
+      )
   }
-  project_dirs
-}
-
-///|
-async fn create_branches(
-  project_dirs : ArrayView[String],
-) -> Unit raise @core.CliError {
-  for project_dir in project_dirs {
-    run_program("git", ["checkout", "-b", "update-dependencies"], project_dir)
+  guard status == 0 else {
+    raise @core.cli_error(
+      "`git rev-parse --show-toplevel` failed in \{module_dir} with exit code \{status}",
+    )
   }
+  let path = output.text() catch {
+    err =>
+      raise @core.cli_error(
+        "failed to decode repository path for \{module_dir}: \{err}",
+      )
+  }
+  path.trim_end(chars="\n\r").to_owned()
 }
 
 ///|
@@ -62,37 +93,36 @@ async fn check_modules(
 }
 
 ///|
-async fn commit_changes(
-  project_dirs : ArrayView[String],
+async fn commit_repository(
+  project_dir : String,
   create_pr : Bool,
 ) -> Unit raise @core.CliError {
-  for project_dir in project_dirs {
-    run_program("git", ["add", "."], project_dir)
-    guard has_staged_changes(project_dir) else {
-      println("no changes to commit in \{project_dir}; skipped commit")
-      continue
-    }
-    run_program("git", ["commit", "-m", EVOL_COMMIT_MESSAGE], project_dir)
-    guard create_pr else { continue }
-    run_program(
-      "git",
-      ["push", "-u", "origin", "update-dependencies"],
-      project_dir,
-    )
-    run_program(
-      "gh",
-      [
-        "pr",
-        "create",
-        "--draft",
-        "--title",
-        EVOL_COMMIT_MESSAGE,
-        "--body",
-        EVOL_PR_BODY,
-      ],
-      project_dir,
-    )
+  run_program("git", ["add", "."], project_dir)
+  guard has_staged_changes(project_dir) else {
+    println("no changes to commit in \{project_dir}; skipped commit")
+    return
   }
+  run_program("git", ["commit", "-m", EVOL_COMMIT_MESSAGE], project_dir)
+  guard create_pr else { return }
+  run_program(
+    "git",
+    ["push", "-u", "origin", "update-dependencies"],
+    project_dir,
+  )
+  run_program(
+    "gh",
+    [
+      "pr",
+      "create",
+      "--draft",
+      "--title",
+      EVOL_COMMIT_MESSAGE,
+      "--body",
+      EVOL_PR_BODY,
+    ],
+    project_dir,
+  )
+  run_program("git", ["checkout", "main"], project_dir)
 }
 
 ///|
