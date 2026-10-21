@@ -159,12 +159,12 @@ pub fn upgrade_command() -> @argparse.Command {
 pub fn evol_command() -> @argparse.Command {
   module_paths_command(
     "evol",
-    "Upgrade dependencies and bump patch versions when versions change, run `moon check`, then commit; `--pr` pushes a branch and opens a draft pull request.",
+    "Upgrade dependencies and bump patch versions when versions change, run `moon check`, then commit; when dependencies changed, `--pr` opens a draft pull request from an `update-dependencies` branch.",
     flags=[
       @argparse.FlagArg(
         "pr",
         long="pr",
-        about="Create a branch, push the commit, and open a draft pull request.",
+        about="Create a branch when dependencies change, push the commit, and open a draft pull request.",
       ),
     ],
   )

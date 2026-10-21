@@ -8,15 +8,22 @@ const EVOL_PR_BODY : String = "Update all module dependencies to their latest ve
 async fn EvolConfig::execute(self : EvolConfig) -> Unit raise @core.CliError {
   let project_dirs = self.project_dirs()
   let module_dirs = resolve_module_dirs(self.paths)
-  if self.create_pr {
-    create_branches(project_dirs)
-  }
-  if upgrade_modules(module_dirs) {
+  let dependencies_changed = upgrade_modules(module_dirs)
+  if dependencies_changed {
+    if self.create_pr {
+      create_branches(project_dirs)
+    }
     bump_modules(module_dirs)
   } else {
     println("no dependency versions changed; skipped bump")
   }
   check_modules(module_dirs)
+  if self.create_pr {
+    guard dependencies_changed else {
+      println("no dependency versions changed; skipped commit")
+      return
+    }
+  }
   commit_changes(project_dirs, self.create_pr)
 }
 
