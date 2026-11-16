@@ -15,6 +15,7 @@ description: Create or initialize MoonBit modules, upgrade their dependencies, b
 | `moonx kokic/momoka -- pin [path...]` | Run `git add .`, commit `chore: snapshot update`, and `git push` for one or more module directories; defaults to `./`. |
 | `moonx kokic/momoka -- cfg` | Configure saved defaults interactively. |
 | `moonx kokic/momoka -- cfg --show` | Print saved defaults. |
+| `moonx kokic/momoka -- toolchain <version>` | Install a specified MoonBit toolchain version; accepts `latest` or `nightly` too. |
 | `moonx kokic/momoka -- stable` | Install the stable MoonBit toolchain. |
 | `moonx kokic/momoka -- nightly` | Install the nightly MoonBit toolchain. |
 

@@ -55,8 +55,12 @@ momoka evol --orphan ../first-module ../second-module
 # stage all changes, commit a snapshot, and push
 momoka pin
 
-# install the stable MoonBit toolchain
+# install a specific MoonBit toolchain version
+momoka toolchain <version>
+
+# install the stable or nightly MoonBit toolchain
 momoka stable
+momoka nightly
 ```
 
 `upgrade`, `bump`, and `evol` look for `moon.mod` in each directory. When it is
@@ -98,6 +102,7 @@ Commands:
   bump     Bump the patch version of the module in moon.mod.
   evol     Upgrade dependencies, bump the patch version if any changed, then run moon check.
   pin      Stage all changes, commit a snapshot, and push.
+  toolchain Install a specified MoonBit toolchain version.
   stable   Install the stable MoonBit toolchain.
   nightly  Install the nightly MoonBit toolchain.
   cfg      Configure default username / license / host / target, or print them.
@@ -107,6 +112,10 @@ Options:
   -h, --help     Show help information.
   -V, --version  Show version information.
 ```
+
+`momoka toolchain <version>` passes the version to the official MoonBit installer.
+Use `latest` for the stable release or `nightly` for the nightly build;
+`momoka stable` and `momoka nightly` remain shortcuts.
 
 The command list above is for native builds. Use `momoka help <command>` (or
 `momoka <command> --help`) for subcommand

@@ -30,8 +30,7 @@ priv enum CliRequest {
   Bump(Array[String])
   Evol(EvolConfig)
   Pin(Array[String])
-  Stable
-  Nightly
+  Toolchain(String)
   Preferences(PreferencesRequest)
 }
 
@@ -107,8 +106,14 @@ fn CliRequest::from_matches(
     "bump" => Bump(submatches.values.get("path").unwrap_or(["."]))
     "evol" => decode_evol_request(submatches)
     "pin" => Pin(submatches.values.get("path").unwrap_or(["."]))
-    "stable" => Stable
-    "nightly" => Nightly
+    "toolchain" => {
+      guard @core.matched_value(submatches, "version") is Some(version) else {
+        raise @core.cli_error("missing required argument: version")
+      }
+      Toolchain(version)
+    }
+    "stable" => Toolchain("latest")
+    "nightly" => Toolchain("nightly")
     "cfg" => decode_preferences_request(submatches)
     _ => raise @core.cli_error("unknown command: \{name}")
   }
@@ -126,6 +131,17 @@ fn cli_commands() -> Array[@argparse.Command] {
     @core.bump_command(),
     @core.evol_command(),
     @core.pin_command(),
+    @argparse.Command(
+      "toolchain",
+      about="Install a specified MoonBit toolchain version.",
+      positionals=[
+        @argparse.PositionArg(
+          "version",
+          about="MoonBit version to install, or latest / nightly.",
+          num_args=@argparse.ValueRange::single(),
+        ),
+      ],
+    ),
     @argparse.Command("stable", about="Install the stable MoonBit toolchain."),
     @argparse.Command("nightly", about="Install the nightly MoonBit toolchain."),
     preferences_command(),
