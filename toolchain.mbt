@@ -14,7 +14,7 @@ async fn install_toolchain(version : String) -> Int32 raise Error {
     @process.run(
       "powershell",
       [
-        "-NoProfile", "-Command", "Set-ExecutionPolicy RemoteSigned -Scope CurrentUser; irm https://cli.moonbitlang.cn/install/powershell.ps1 | iex",
+        "-NoProfile", "-Command", "Set-ExecutionPolicy RemoteSigned -Scope CurrentUser; irm https://cli.moonbitlang.com/install/powershell.ps1 | iex",
       ],
       extra_env~,
     )
@@ -22,7 +22,7 @@ async fn install_toolchain(version : String) -> Int32 raise Error {
     @process.run(
       "bash",
       [
-        "-o", "pipefail", "-c", "curl -fsSL https://cli.moonbitlang.cn/install/unix.sh | bash",
+        "-o", "pipefail", "-c", "curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash",
       ],
       extra_env~,
     )
